@@ -5,7 +5,7 @@ import {
   Home,
   Settings,
   PlusCircle,
-  Search,
+  Users,
 } from "lucide-react";
 import {
   SidebarProvider,
@@ -16,13 +16,10 @@ import {
   SidebarMenuItem,
   SidebarMenuButton,
   SidebarFooter,
-  SidebarTrigger,
-  SidebarInset,
 } from "@/components/ui/sidebar";
 import { Button } from "@/components/ui/button";
 import { Logo } from "@/components/icons";
 import { usePathname } from "next/navigation";
-import { Input } from "../ui/input";
 
 export function AppShell({
   children,
@@ -32,7 +29,7 @@ export function AppShell({
   const pathname = usePathname();
 
   const menuItems = [
-    { href: "/", label: "Dashboard", icon: Home },
+    { href: "/customers", label: "Customers", icon: Users },
     { href: "/settings", label: "Settings", icon: Settings },
   ];
 
@@ -51,7 +48,7 @@ export function AppShell({
               <SidebarMenuItem key={item.href}>
                 <Link href={item.href}>
                   <SidebarMenuButton
-                    isActive={pathname === item.href}
+                    isActive={pathname.startsWith(item.href)}
                     tooltip={item.label}
                   >
                     <item.icon />
