@@ -32,7 +32,9 @@ export default async function CustomerDetailPage({
   
   const balanceColor = customer.balance > 0 ? "text-destructive" : "text-green-400";
   
-  const whatsAppMessage = encodeURIComponent(`Hello ${customer.name}, here is your latest payment statement from AB INTERIOR. Your current outstanding balance is ${formatCurrency(customer.balance)}. You can view your full statement here: ${process.env.NEXT_PUBLIC_APP_URL}/customers/${customer.id}/statement. Thank you!`);
+  const appUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:9002';
+  const statementUrl = `${appUrl}/customers/${customer.id}/statement`;
+  const whatsAppMessage = encodeURIComponent(`Hello ${customer.name}, here is your latest payment statement from AB INTERIOR. Your current outstanding balance is ${formatCurrency(customer.balance)}. You can view your full statement here: ${statementUrl}. Thank you!`);
   const whatsappUrl = `https://wa.me/${customer.phone}?text=${whatsAppMessage}`;
 
 
