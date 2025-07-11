@@ -1,11 +1,13 @@
+
 "use server";
 
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
 import { summarizeTransactions } from "@/ai/flows/summarize-transactions";
-import { getCustomers as getCustomersData, getCustomerById as getCustomerData, formatTransactionsForAI, addCustomer as addCustomerData, addPayment as addPaymentData, deleteCustomer as deleteCustomerData, updateCustomer as updateCustomerData } from "@/lib/data";
+import { getCustomers as getCustomersData, getCustomerById as getCustomerData, formatTransactionsForAI, addCustomer as addCustomerData, addPayment as addPaymentData, deleteCustomer as deleteCustomerData, updateCustomer as updateCustomerData, updateTransaction as updateTransactionData, deleteTransaction as deleteTransactionData } from "@/lib/data";
 import type { SummarizeTransactionsInput } from '@/ai/flows/summarize-transactions';
 import { addCustomerSchema, paymentSchema, customerSchema } from "@/lib/schemas";
+import type { Transaction } from "@/lib/types";
 
 export const getCustomers = async () => {
     const customers = await getCustomersData();
@@ -111,6 +113,42 @@ export const updateCustomer = async (customerId: string, data: z.infer<typeof cu
 
     try {
         await updateCustomerData(customerId, validatedFields.data);
+        revalidatePath(`/customers/${customerId}`);
+        revalidatePath('/customers');
+        return { success: true };
+    } catch (e) {
+        console.error(e);
+        return {
+            errors: { _form: ["An unexpected error occurred."] },
+        };
+    }
+};
+
+export const updateTransaction = async (customerId: string, transactionId: string, data: z.infer<typeof paymentSchema>) => {
+    const validatedFields = paymentSchema.safeParse(data);
+
+    if (!validatedFields.success) {
+        return {
+            errors: validatedFields.error.flatten().fieldErrors,
+        };
+    }
+
+    try {
+        await updateTransactionData(customerId, transactionId, validatedFields.data);
+        revalidatePath(`/customers/${customerId}`);
+        revalidatePath('/customers');
+        return { success: true };
+    } catch (e) {
+        console.error(e);
+        return {
+            errors: { _form: ["An unexpected error occurred."] },
+        };
+    }
+};
+
+export const deleteTransaction = async (customerId: string, transactionId: string) => {
+    try {
+        await deleteTransactionData(customerId, transactionId);
         revalidatePath(`/customers/${customerId}`);
         revalidatePath('/customers');
         return { success: true };

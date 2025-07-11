@@ -1,3 +1,4 @@
+
 "use client";
 
 import * as React from "react";
@@ -15,7 +16,9 @@ import {
   ArrowDown,
   ArrowUp,
   ArrowUpDown,
+  Edit,
   MoreVertical,
+  Trash2,
 } from "lucide-react";
 import { Button } from "../ui/button";
 import {
@@ -24,13 +27,18 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "../ui/dropdown-menu";
+import { EditTransactionSheet } from "./edit-transaction-sheet";
+import { DeleteTransactionDialog } from "./delete-transaction-dialog";
 
-type SortKey = keyof Transaction;
+
+type SortKey = keyof Omit<Transaction, 'customerId'>;
 
 export function PaymentHistoryTable({
   transactions,
+  customerId,
 }: {
   transactions: Transaction[];
+  customerId: string;
 }) {
   const [sortKey, setSortKey] = React.useState<SortKey>("date");
   const [sortOrder, setSortOrder] = React.useState<"asc" | "desc">("desc");
@@ -90,7 +98,11 @@ export function PaymentHistoryTable({
   };
   
   const formatDate = (dateString: string) => {
-      return new Date(dateString).toLocaleDateString('en-US', {
+      const date = new Date(dateString);
+      if (isNaN(date.getTime())) {
+        return 'Invalid Date';
+      }
+      return date.toLocaleDateString('en-US', {
           year: 'numeric',
           month: 'long',
           day: 'numeric'
@@ -107,11 +119,11 @@ export function PaymentHistoryTable({
             <SortableHeader columnKey="amount">Amount</SortableHeader>
             <SortableHeader columnKey="mode">Mode</SortableHeader>
             <TableHead>Notes</TableHead>
-            <TableHead className="text-right">Actions</TableHead>
+            <TableHead className="text-right w-[60px]">Actions</TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
-          {sortedTransactions.map((transaction) => (
+          {sortedTransactions.length > 0 ? sortedTransactions.map((transaction) => (
             <TableRow key={transaction.id}>
               <TableCell>{formatDate(transaction.date)}</TableCell>
               <TableCell>
@@ -144,16 +156,31 @@ export function PaymentHistoryTable({
                   <DropdownMenuTrigger asChild>
                     <Button variant="ghost" size="icon">
                       <MoreVertical className="h-4 w-4" />
+                       <span className="sr-only">More actions</span>
                     </Button>
                   </DropdownMenuTrigger>
-                  <DropdownMenuContent>
-                    <DropdownMenuItem>Edit</DropdownMenuItem>
-                    <DropdownMenuItem>Delete</DropdownMenuItem>
+                  <DropdownMenuContent align="end">
+                    <EditTransactionSheet customerId={customerId} transaction={transaction}>
+                      <DropdownMenuItem onSelect={(e) => e.preventDefault()}>
+                        <Edit className="mr-2 h-4 w-4" /> Edit
+                      </DropdownMenuItem>
+                    </EditTransactionSheet>
+                    <DeleteTransactionDialog customerId={customerId} transactionId={transaction.id}>
+                       <DropdownMenuItem onSelect={(e) => e.preventDefault()} className="text-destructive focus:text-destructive focus:bg-destructive/10">
+                        <Trash2 className="mr-2 h-4 w-4" /> Delete
+                      </DropdownMenuItem>
+                    </DeleteTransactionDialog>
                   </DropdownMenuContent>
                 </DropdownMenu>
               </TableCell>
             </TableRow>
-          ))}
+          )) : (
+             <TableRow>
+                <TableCell colSpan={6} className="h-24 text-center">
+                    No transactions found.
+                </TableCell>
+            </TableRow>
+          )}
         </TableBody>
       </Table>
     </div>

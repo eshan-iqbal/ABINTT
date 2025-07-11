@@ -108,7 +108,7 @@ export default async function CustomerDetailPage({
                 </AddPaymentSheet>
             </CardHeader>
             <CardContent>
-                <PaymentHistoryTable transactions={customer.transactions} />
+                <PaymentHistoryTable transactions={customer.transactions} customerId={customer.id} />
             </CardContent>
         </Card>
         

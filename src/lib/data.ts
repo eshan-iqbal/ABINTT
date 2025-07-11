@@ -101,7 +101,7 @@ export const getCustomerById = async (id: string): Promise<CustomerWithSummary |
 
         return {
             ...mappedCustomer,
-            transactions: (customer.transactions || []).map((t: any) => ({...t, id: new ObjectId().toHexString()})), // add temp id for keys
+            transactions: (customer.transactions || []).map((t: any) => ({...t, id: t.id ? t.id.toString() : new ObjectId().toHexString()})), 
             totalDue,
             totalPaid,
             balance,
@@ -119,6 +119,7 @@ export const addCustomer = async (data: z.infer<typeof addCustomerSchema>) => {
     const transactions = [];
     if (data.initialTransaction && data.initialTransaction.amount > 0) {
         transactions.push({
+            id: new ObjectId(),
             date: new Date().toISOString(),
             amount: data.initialTransaction.amount,
             type: 'DEBIT',
@@ -146,6 +147,7 @@ export const addPayment = async (data: z.infer<typeof paymentSchema>) => {
     const customersCollection = db.collection('customers');
 
     const paymentData = {
+        id: new ObjectId(),
         date: data.date.toISOString(),
         amount: data.amount,
         type: data.type,
@@ -190,11 +192,45 @@ export const updateCustomer = async (customerId: string, data: z.infer<typeof cu
     );
 };
 
+export const updateTransaction = async (customerId: string, transactionId: string, data: z.infer<typeof paymentSchema>) => {
+    if (!ObjectId.isValid(customerId) || !ObjectId.isValid(transactionId)) {
+        throw new Error("Invalid ID");
+    }
+    const db = await getDb();
+    const customersCollection = db.collection('customers');
+
+    await customersCollection.updateOne(
+        { _id: new ObjectId(customerId), "transactions.id": new ObjectId(transactionId) },
+        {
+            $set: {
+                "transactions.$.date": data.date.toISOString(),
+                "transactions.$.amount": data.amount,
+                "transactions.$.type": data.type,
+                "transactions.$.mode": data.mode,
+                "transactions.$.notes": data.notes,
+            }
+        }
+    );
+}
+
+export const deleteTransaction = async (customerId: string, transactionId: string) => {
+    if (!ObjectId.isValid(customerId) || !ObjectId.isValid(transactionId)) {
+        throw new Error("Invalid ID");
+    }
+    const db = await getDb();
+    const customersCollection = db.collection('customers');
+
+    await customersCollection.updateOne(
+        { _id: new ObjectId(customerId) },
+        { $pull: { transactions: { id: new ObjectId(transactionId) } } }
+    );
+}
+
 
 export const formatTransactionsForAI = (transactions: Transaction[]): string => {
   return transactions
     .map(t => 
-      `On ${t.date}, an amount of ${t.amount} was ${t.type === 'CREDIT' ? 'paid' : 'billed'} via ${t.mode}. Notes: ${t.notes || 'N/A'}`
+      `On ${new Date(t.date).toLocaleDateString()}, an amount of ${t.amount} was ${t.type === 'CREDIT' ? 'paid' : 'billed'} via ${t.mode}. Notes: ${t.notes || 'N/A'}`
     )
     .join('\n');
 };

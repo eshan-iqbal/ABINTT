@@ -1,5 +1,5 @@
 export type Transaction = {
-  id: string; // This will be a temporary unique key for React, not from DB for sub-documents
+  id: string; // This will be the MongoDB ObjectId as a string
   customerId: string;
   date: string;
   amount: number;
