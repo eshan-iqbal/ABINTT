@@ -1,11 +1,10 @@
 import { getCustomerById } from "@/app/actions";
 import { Logo } from "@/components/icons";
+import { PrintStatementButton } from "@/components/ledger/print-statement-button";
 import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow, TableFooter } from "@/components/ui/table";
 import { notFound } from "next/navigation";
-import { Printer } from 'lucide-react';
 
 export default async function StatementPage({
   params,
@@ -114,9 +113,7 @@ export default async function StatementPage({
 
       </div>
       <div className="max-w-4xl mx-auto mt-4 text-center print:hidden">
-         <Button onClick={() => window.print()}>
-            <Printer className="mr-2 h-4 w-4" /> Print or Save as PDF
-        </Button>
+        <PrintStatementButton />
       </div>
     </div>
   );
