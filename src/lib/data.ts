@@ -57,26 +57,31 @@ const mapMongoId = (doc: any) => {
 }
 
 export const getCustomers = async (): Promise<CustomerSummary[]> => {
-    const db = await getDb();
-    const customersCollection = db.collection<Customer>('customers');
-    const customers = await customersCollection.find({}).sort({ name: 1 }).toArray();
-    
-    return customers.map((customer: any) => {
-        const { totalDue, totalPaid, balance } = calculateSummary(customer.transactions || []);
-        const { transactions, ...customerWithoutTransactions } = customer;
-        const mappedCustomer = mapMongoId(customerWithoutTransactions);
+    try {
+        const db = await getDb();
+        const customersCollection = db.collection<Customer>('customers');
+        const customers = await customersCollection.find({}).sort({ name: 1 }).toArray();
         
-        return {
-            ...mappedCustomer,
-            name: customer.name,
-            email: customer.email,
-            phone: customer.phone,
-            address: customer.address,
-            totalDue,
-            totalPaid,
-            balance,
-        };
-    });
+        return customers.map((customer: any) => {
+            const { totalDue, totalPaid, balance } = calculateSummary(customer.transactions || []);
+            const { transactions, ...customerWithoutTransactions } = customer;
+            const mappedCustomer = mapMongoId(customerWithoutTransactions);
+            
+            return {
+                ...mappedCustomer,
+                name: customer.name,
+                email: customer.email,
+                phone: customer.phone,
+                address: customer.address,
+                totalDue,
+                totalPaid,
+                balance,
+            };
+        });
+    } catch (error) {
+        console.error("Failed to fetch customers:", error);
+        throw new Error("Could not connect to the database to fetch customers. Please check your connection.");
+    }
 };
 
 
@@ -153,6 +158,19 @@ export const addPayment = async (data: z.infer<typeof paymentSchema>) => {
         { $push: { transactions: paymentData } }
     );
 };
+
+export const deleteCustomer = async (customerId: string) => {
+    if (!ObjectId.isValid(customerId)) {
+        throw new Error("Invalid customer ID");
+    }
+    const db = await getDb();
+    const customersCollection = db.collection('customers');
+
+    const result = await customersCollection.deleteOne({ _id: new ObjectId(customerId) });
+    if (result.deletedCount === 0) {
+        throw new Error("Customer not found");
+    }
+}
 
 
 export const formatTransactionsForAI = (transactions: Transaction[]): string => {

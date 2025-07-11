@@ -3,7 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
 import { summarizeTransactions } from "@/ai/flows/summarize-transactions";
-import { getCustomers as getCustomersData, getCustomerById as getCustomerData, formatTransactionsForAI, addCustomer as addCustomerData, addPayment as addPaymentData } from "@/lib/data";
+import { getCustomers as getCustomersData, getCustomerById as getCustomerData, formatTransactionsForAI, addCustomer as addCustomerData, addPayment as addPaymentData, deleteCustomer as deleteCustomerData } from "@/lib/data";
 import type { SummarizeTransactionsInput } from '@/ai/flows/summarize-transactions';
 import { addCustomerSchema, paymentSchema } from "@/lib/schemas";
 
@@ -71,6 +71,20 @@ export const addPayment = async (data: z.infer<typeof paymentSchema>) => {
     try {
         await addPaymentData(validatedFields.data);
         revalidatePath(`/customers/${data.customerId}`);
+        return { success: true };
+    } catch (e) {
+        console.error(e);
+        return {
+             errors: { _form: ["An unexpected error occurred."] },
+        }
+    }
+}
+
+
+export const deleteCustomer = async (customerId: string) => {
+    try {
+        await deleteCustomerData(customerId);
+        revalidatePath('/customers');
         return { success: true };
     } catch (e) {
         console.error(e);

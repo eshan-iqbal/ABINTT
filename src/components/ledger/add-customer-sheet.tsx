@@ -141,7 +141,7 @@ export function AddCustomerSheet({ children }: { children: React.ReactNode }) {
                         <div>
                             <h4 className="text-sm font-medium">Initial Bill (Optional)</h4>
                             <p className="text-sm text-muted-foreground">
-                                Add an initial bill or opening balance for this customer.
+                                Add an initial bill or opening balance for this customer. This will be a debit entry.
                             </p>
                         </div>
                         
@@ -155,30 +155,6 @@ export function AddCustomerSheet({ children }: { children: React.ReactNode }) {
                                         <Input type="number" placeholder="0.00" {...field} onChange={e => field.onChange(parseFloat(e.target.value) || 0)} />
                                     </FormControl>
                                     <FormMessage />
-                                </FormItem>
-                            )}
-                        />
-
-                        <FormField
-                            control={form.control}
-                            name="initialTransaction.mode"
-                            render={({ field }) => (
-                                <FormItem>
-                                <FormLabel>Payment Mode</FormLabel>
-                                <Select onValueChange={field.onChange} defaultValue={field.value}>
-                                    <FormControl>
-                                    <SelectTrigger>
-                                        <SelectValue placeholder="Select payment mode" />
-                                    </SelectTrigger>
-                                    </FormControl>
-                                    <SelectContent>
-                                        <SelectItem value="CASH">Cash</SelectItem>
-                                        <SelectItem value="UPI">UPI</SelectItem>
-                                        <SelectItem value="CARD">Card</SelectItem>
-                                        <SelectItem value="OTHER">Other</SelectItem>
-                                    </SelectContent>
-                                </Select>
-                                <FormMessage />
                                 </FormItem>
                             )}
                         />

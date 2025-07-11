@@ -1,4 +1,4 @@
-import { addPayment, getCustomerById } from "@/app/actions";
+import { getCustomerById } from "@/app/actions";
 import { AddPaymentSheet } from "@/components/ledger/add-payment-sheet";
 import { PageHeader } from "@/components/page-header";
 import { Button } from "@/components/ui/button";
@@ -9,6 +9,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { PaymentHistoryTable } from "@/components/ledger/payment-history-table";
 import { SummaryTool } from "@/components/ledger/summary-tool";
+import { DeleteCustomerDialog } from "@/components/ledger/delete-customer-dialog";
 
 export default async function CustomerDetailPage({
   params,
@@ -40,9 +41,11 @@ export default async function CustomerDetailPage({
           <Button variant="outline">
             <Edit className="mr-2 h-4 w-4" /> Edit Customer
           </Button>
-          <Button variant="destructive">
-            <Trash2 className="mr-2 h-4 w-4" /> Delete
-          </Button>
+          <DeleteCustomerDialog customerId={customer.id}>
+             <Button variant="destructive">
+                <Trash2 className="mr-2 h-4 w-4" /> Delete
+            </Button>
+          </DeleteCustomerDialog>
           <Link href={`/customers/${customer.id}/statement`} target="_blank">
             <Button>
               <FileText className="mr-2 h-4 w-4" /> Generate Statement
@@ -92,7 +95,7 @@ export default async function CustomerDetailPage({
                 </div>
                 <AddPaymentSheet customerId={customer.id}>
                     <Button variant="secondary">
-                        <PlusCircle className="mr-2 h-4 w-4" /> Add Payment
+                        <PlusCircle className="mr-2 h-4 w-4" /> Add Transaction
                     </Button>
                 </AddPaymentSheet>
             </CardHeader>

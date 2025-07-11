@@ -13,7 +13,7 @@ export const addCustomerSchema = z.object({
     ...customerCoreSchema,
     initialTransaction: z.object({
         amount: z.number().min(0).optional(),
-        mode: z.enum(["CASH", "UPI", "CARD", "OTHER"]).optional(),
+        mode: z.enum(["CASH", "UPI", "CARD", "OTHER"]).default("OTHER"),
         notes: z.string().optional(),
     }).optional(),
 });

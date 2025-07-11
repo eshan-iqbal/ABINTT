@@ -61,7 +61,13 @@ export function AddPaymentSheet({ customerId, children }: { customerId: string, 
                     title: "Success",
                     description: "Payment has been added successfully.",
                 });
-                form.reset();
+                form.reset({
+                    customerId: customerId,
+                    amount: 0,
+                    type: "CREDIT",
+                    mode: "UPI",
+                    notes: "",
+                });
                 setOpen(false);
             }
         });
@@ -72,9 +78,9 @@ export function AddPaymentSheet({ customerId, children }: { customerId: string, 
             <SheetTrigger asChild>{children}</SheetTrigger>
             <SheetContent className="overflow-y-auto">
                 <SheetHeader>
-                    <SheetTitle>Add a New Payment</SheetTitle>
+                    <SheetTitle>Add a New Transaction</SheetTitle>
                     <SheetDescription>
-                        Record a new payment or bill for this customer.
+                        Record a new payment received or a new bill for this customer.
                     </SheetDescription>
                 </SheetHeader>
                 <Form {...form}>
@@ -172,7 +178,7 @@ export function AddPaymentSheet({ customerId, children }: { customerId: string, 
                                 <Button type="button" variant="ghost">Cancel</Button>
                             </SheetClose>
                             <Button type="submit" disabled={isPending}>
-                                {isPending ? "Adding..." : "Add Payment"}
+                                {isPending ? "Adding..." : "Add Transaction"}
                             </Button>
                         </SheetFooter>
                     </form>
