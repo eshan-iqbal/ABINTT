@@ -25,4 +25,5 @@ export const paymentSchema = z.object({
     type: z.enum(["CREDIT", "DEBIT"]),
     mode: z.enum(["CASH", "UPI", "CARD", "OTHER"]),
     notes: z.string().optional(),
+    date: z.date(),
 });

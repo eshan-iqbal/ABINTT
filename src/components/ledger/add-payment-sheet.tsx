@@ -1,3 +1,4 @@
+
 "use client";
 
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -30,6 +31,11 @@ import { paymentSchema } from "@/lib/schemas";
 import { Textarea } from "../ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../ui/select";
 import { RadioGroup, RadioGroupItem } from "../ui/radio-group";
+import { CalendarIcon } from "lucide-react";
+import { Popover, PopoverContent, PopoverTrigger } from "../ui/popover";
+import { cn } from "@/lib/utils";
+import { format } from "date-fns";
+import { Calendar } from "../ui/calendar";
 
 export function AddPaymentSheet({ customerId, children }: { customerId: string, children: React.ReactNode }) {
     const [open, setOpen] = useState(false);
@@ -44,6 +50,7 @@ export function AddPaymentSheet({ customerId, children }: { customerId: string, 
             type: "CREDIT",
             mode: "UPI",
             notes: "",
+            date: new Date(),
         },
     });
 
@@ -67,6 +74,7 @@ export function AddPaymentSheet({ customerId, children }: { customerId: string, 
                     type: "CREDIT",
                     mode: "UPI",
                     notes: "",
+                    date: new Date(),
                 });
                 setOpen(false);
             }
@@ -133,6 +141,48 @@ export function AddPaymentSheet({ customerId, children }: { customerId: string, 
                                 </FormItem>
                             )}
                         />
+                        
+                         <FormField
+                            control={form.control}
+                            name="date"
+                            render={({ field }) => (
+                                <FormItem className="flex flex-col">
+                                <FormLabel>Transaction Date</FormLabel>
+                                <Popover>
+                                    <PopoverTrigger asChild>
+                                    <FormControl>
+                                        <Button
+                                        variant={"outline"}
+                                        className={cn(
+                                            "w-full pl-3 text-left font-normal",
+                                            !field.value && "text-muted-foreground"
+                                        )}
+                                        >
+                                        {field.value ? (
+                                            format(field.value, "PPP")
+                                        ) : (
+                                            <span>Pick a date</span>
+                                        )}
+                                        <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
+                                        </Button>
+                                    </FormControl>
+                                    </PopoverTrigger>
+                                    <PopoverContent className="w-auto p-0" align="start">
+                                    <Calendar
+                                        mode="single"
+                                        selected={field.value}
+                                        onSelect={field.onChange}
+                                        disabled={(date) =>
+                                            date > new Date() || date < new Date("1900-01-01")
+                                        }
+                                        initialFocus
+                                    />
+                                    </PopoverContent>
+                                </Popover>
+                                <FormMessage />
+                                </FormItem>
+                            )}
+                            />
 
                         <FormField
                             control={form.control}

@@ -146,7 +146,7 @@ export const addPayment = async (data: z.infer<typeof paymentSchema>) => {
     const customersCollection = db.collection('customers');
 
     const paymentData = {
-        date: new Date().toISOString(),
+        date: data.date.toISOString(),
         amount: data.amount,
         type: data.type,
         mode: data.mode,
