@@ -20,10 +20,10 @@ async function connectToDatabase() {
   }
   
   try {
-    const client = await MongoClient.connect(MONGODB_URI, {
+    const client = new MongoClient(MONGODB_URI, {
         serverSelectionTimeoutMS: 5000 // Shorten timeout for quicker failure
     });
-
+    await client.connect();
     const db = client.db(DB_NAME);
 
     cachedClient = client;
