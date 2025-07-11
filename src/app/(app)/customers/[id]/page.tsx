@@ -4,12 +4,13 @@ import { PageHeader } from "@/components/page-header";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
-import { Edit, FileText, Mail, MapPin, Phone, PlusCircle, Trash2 } from "lucide-react";
+import { FileText, Mail, MapPin, Phone, PlusCircle, Trash2 } from "lucide-react";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { PaymentHistoryTable } from "@/components/ledger/payment-history-table";
 import { SummaryTool } from "@/components/ledger/summary-tool";
 import { DeleteCustomerDialog } from "@/components/ledger/delete-customer-dialog";
+import { EditCustomerSheet } from "@/components/ledger/edit-customer-sheet";
 
 export default async function CustomerDetailPage({
   params,
@@ -38,9 +39,7 @@ export default async function CustomerDetailPage({
         description={`Manage ${customer.name}'s payment ledger.`}
       >
         <div className="flex flex-wrap items-center gap-2">
-          <Button variant="outline">
-            <Edit className="mr-2 h-4 w-4" /> Edit Customer
-          </Button>
+          <EditCustomerSheet customer={customer} />
           <DeleteCustomerDialog customerId={customer.id}>
              <Button variant="destructive">
                 <Trash2 className="mr-2 h-4 w-4" /> Delete

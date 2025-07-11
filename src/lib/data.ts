@@ -1,7 +1,7 @@
 import { MongoClient, ObjectId } from 'mongodb';
 import type { Customer, CustomerSummary, CustomerWithSummary, Transaction } from './types';
 import { z } from 'zod';
-import { addCustomerSchema, paymentSchema } from './schemas';
+import { addCustomerSchema, customerSchema, paymentSchema } from './schemas';
 
 
 const MONGODB_URI = process.env.MONGODB_URI;
@@ -170,7 +170,25 @@ export const deleteCustomer = async (customerId: string) => {
     if (result.deletedCount === 0) {
         throw new Error("Customer not found");
     }
-}
+};
+
+export const updateCustomer = async (customerId: string, data: z.infer<typeof customerSchema>) => {
+    if (!ObjectId.isValid(customerId)) {
+        throw new Error("Invalid customer ID");
+    }
+    const db = await getDb();
+    const customersCollection = db.collection('customers');
+
+    await customersCollection.updateOne(
+        { _id: new ObjectId(customerId) },
+        { $set: {
+            name: data.name,
+            email: data.email,
+            phone: data.phone,
+            address: data.address,
+        } }
+    );
+};
 
 
 export const formatTransactionsForAI = (transactions: Transaction[]): string => {

@@ -3,9 +3,9 @@
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
 import { summarizeTransactions } from "@/ai/flows/summarize-transactions";
-import { getCustomers as getCustomersData, getCustomerById as getCustomerData, formatTransactionsForAI, addCustomer as addCustomerData, addPayment as addPaymentData, deleteCustomer as deleteCustomerData } from "@/lib/data";
+import { getCustomers as getCustomersData, getCustomerById as getCustomerData, formatTransactionsForAI, addCustomer as addCustomerData, addPayment as addPaymentData, deleteCustomer as deleteCustomerData, updateCustomer as updateCustomerData } from "@/lib/data";
 import type { SummarizeTransactionsInput } from '@/ai/flows/summarize-transactions';
-import { addCustomerSchema, paymentSchema } from "@/lib/schemas";
+import { addCustomerSchema, paymentSchema, customerSchema } from "@/lib/schemas";
 
 export const getCustomers = async () => {
     const customers = await getCustomersData();
@@ -71,6 +71,7 @@ export const addPayment = async (data: z.infer<typeof paymentSchema>) => {
     try {
         await addPaymentData(validatedFields.data);
         revalidatePath(`/customers/${data.customerId}`);
+        revalidatePath('/customers');
         return { success: true };
     } catch (e) {
         console.error(e);
@@ -93,3 +94,25 @@ export const deleteCustomer = async (customerId: string) => {
         }
     }
 }
+
+export const updateCustomer = async (customerId: string, data: z.infer<typeof customerSchema>) => {
+    const validatedFields = customerSchema.safeParse(data);
+
+    if (!validatedFields.success) {
+        return {
+            errors: validatedFields.error.flatten().fieldErrors,
+        };
+    }
+
+    try {
+        await updateCustomerData(customerId, validatedFields.data);
+        revalidatePath(`/customers/${customerId}`);
+        revalidatePath('/customers');
+        return { success: true };
+    } catch (e) {
+        console.error(e);
+        return {
+            errors: { _form: ["An unexpected error occurred."] },
+        };
+    }
+};

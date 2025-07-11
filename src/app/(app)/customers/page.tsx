@@ -1,11 +1,9 @@
 import { getCustomers } from "@/app/actions";
 import { AddCustomerSheet } from "@/components/ledger/add-customer-sheet";
-import { CustomerCard } from "@/components/ledger/customer-card";
+import { CustomerTable } from "@/components/ledger/customer-table";
 import { PageHeader } from "@/components/page-header";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { PlusCircle, Search } from "lucide-react";
-import Link from 'next/link';
+import { PlusCircle } from "lucide-react";
 
 export default async function DashboardPage() {
   const customers = await getCustomers();
@@ -16,38 +14,30 @@ export default async function DashboardPage() {
         title="Customers"
         description="An overview of all your customers and their balances."
       >
-        <div className="flex items-center gap-2">
-            <div className="relative">
-                <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
-                <Input placeholder="Search customers..." className="pl-8 w-48 md:w-64" />
-            </div>
-            <AddCustomerSheet>
-                <Button>
-                    <PlusCircle className="mr-2 h-4 w-4" /> Add Customer
-                </Button>
-            </AddCustomerSheet>
-        </div>
+        <AddCustomerSheet>
+          <Button>
+            <PlusCircle className="mr-2 h-4 w-4" /> Add Customer
+          </Button>
+        </AddCustomerSheet>
       </PageHeader>
       <main className="flex-1 overflow-y-auto p-4 sm:p-6 md:p-8">
-        {customers.length > 0 ? (
-          <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-            {customers.map((customer) => (
-              <CustomerCard key={customer.id} customer={customer} />
-            ))}
-          </div>
-        ) : (
-          <div className="flex flex-col items-center justify-center h-full text-center">
-            <h2 className="text-2xl font-semibold">No Customers Found</h2>
-            <p className="text-muted-foreground mt-2">
-              Get started by adding your first customer.
-            </p>
-            <AddCustomerSheet>
-                <Button className="mt-4">
-                  <PlusCircle className="mr-2 h-4 w-4" /> Add Customer
-                </Button>
-            </AddCustomerSheet>
-          </div>
-        )}
+        <div className="max-w-5xl mx-auto">
+          {customers.length > 0 ? (
+            <CustomerTable customers={customers} />
+          ) : (
+            <div className="flex flex-col items-center justify-center h-[50vh] text-center border-2 border-dashed rounded-lg">
+              <h2 className="text-2xl font-semibold">No Customers Found</h2>
+              <p className="text-muted-foreground mt-2">
+                Get started by adding your first customer.
+              </p>
+              <AddCustomerSheet>
+                  <Button className="mt-4">
+                    <PlusCircle className="mr-2 h-4 w-4" /> Add Customer
+                  </Button>
+              </AddCustomerSheet>
+            </div>
+          )}
+        </div>
       </main>
     </div>
   );
