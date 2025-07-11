@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useState } from 'react';
@@ -40,7 +41,7 @@ export function ShareStatementButton({ customer }: { customer: CustomerWithSumma
             pdf.addImage(imgData, 'PNG', 0, 0, pdfWidth, pdfHeight);
             
             // Get PDF as a Blob
-            const pdfBlob = pdf.getBlob();
+            const pdfBlob = pdf.output('blob');
             
             // Create a file from the Blob
             const pdfFile = new File([pdfBlob], `statement-${customer.name.replace(/\s+/g, '_')}.pdf`, { type: 'application/pdf' });
