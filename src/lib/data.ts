@@ -1,7 +1,7 @@
 import { MongoClient, ObjectId } from 'mongodb';
 import type { Customer, CustomerSummary, CustomerWithSummary, Transaction } from './types';
 import { z } from 'zod';
-import { customerSchema } from './schemas';
+import { addCustomerSchema, paymentSchema } from './schemas';
 
 
 const MONGODB_URI = process.env.MONGODB_URI;
@@ -107,15 +107,51 @@ export const getCustomerById = async (id: string): Promise<CustomerWithSummary |
     }
 };
 
-export const addCustomer = async (data: z.infer<typeof customerSchema>) => {
+export const addCustomer = async (data: z.infer<typeof addCustomerSchema>) => {
     const db = await getDb();
     const customersCollection = db.collection('customers');
+    
+    const transactions = [];
+    if (data.initialTransaction && data.initialTransaction.amount > 0) {
+        transactions.push({
+            date: new Date().toISOString(),
+            amount: data.initialTransaction.amount,
+            type: 'DEBIT',
+            mode: data.initialTransaction.mode,
+            notes: data.initialTransaction.notes || "Initial bill",
+        });
+    }
+
     const customerData = {
-        ...data,
-        transactions: [],
+        name: data.name,
+        email: data.email,
+        phone: data.phone,
+        address: data.address,
+        transactions: transactions,
         createdAt: new Date(),
     };
     await customersCollection.insertOne(customerData);
+};
+
+export const addPayment = async (data: z.infer<typeof paymentSchema>) => {
+    if (!ObjectId.isValid(data.customerId)) {
+        throw new Error("Invalid customer ID");
+    }
+    const db = await getDb();
+    const customersCollection = db.collection('customers');
+
+    const paymentData = {
+        date: new Date().toISOString(),
+        amount: data.amount,
+        type: data.type,
+        mode: data.mode,
+        notes: data.notes,
+    };
+
+    await customersCollection.updateOne(
+        { _id: new ObjectId(data.customerId) },
+        { $push: { transactions: paymentData } }
+    );
 };
 
 

@@ -23,37 +23,33 @@ import {
   SheetFooter,
   SheetClose,
 } from "@/components/ui/sheet";
-import { addCustomer } from "@/app/actions";
+import { addPayment } from "@/app/actions";
 import { useToast } from "@/hooks/use-toast";
 import { useState, useTransition } from "react";
-import { addCustomerSchema } from "@/lib/schemas";
-import { Separator } from "../ui/separator";
+import { paymentSchema } from "@/lib/schemas";
 import { Textarea } from "../ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../ui/select";
+import { RadioGroup, RadioGroupItem } from "../ui/radio-group";
 
-export function AddCustomerSheet({ children }: { children: React.ReactNode }) {
+export function AddPaymentSheet({ customerId, children }: { customerId: string, children: React.ReactNode }) {
     const [open, setOpen] = useState(false);
     const [isPending, startTransition] = useTransition();
     const { toast } = useToast();
 
-    const form = useForm<z.infer<typeof addCustomerSchema>>({
-        resolver: zodResolver(addCustomerSchema),
+    const form = useForm<z.infer<typeof paymentSchema>>({
+        resolver: zodResolver(paymentSchema),
         defaultValues: {
-            name: "",
-            email: "",
-            phone: "",
-            address: "",
-            initialTransaction: {
-                amount: 0,
-                mode: "OTHER",
-                notes: "",
-            }
+            customerId: customerId,
+            amount: 0,
+            type: "CREDIT",
+            mode: "UPI",
+            notes: "",
         },
     });
 
-    function onSubmit(values: z.infer<typeof addCustomerSchema>) {
+    function onSubmit(values: z.infer<typeof paymentSchema>) {
         startTransition(async () => {
-            const result = await addCustomer(values);
+            const result = await addPayment(values);
             if (result?.errors) {
                  toast({
                     title: "Error submitting form",
@@ -63,7 +59,7 @@ export function AddCustomerSheet({ children }: { children: React.ReactNode }) {
             } else {
                 toast({
                     title: "Success",
-                    description: "Customer has been added successfully.",
+                    description: "Payment has been added successfully.",
                 });
                 form.reset();
                 setOpen(false);
@@ -76,78 +72,51 @@ export function AddCustomerSheet({ children }: { children: React.ReactNode }) {
             <SheetTrigger asChild>{children}</SheetTrigger>
             <SheetContent className="overflow-y-auto">
                 <SheetHeader>
-                    <SheetTitle>Add a New Customer</SheetTitle>
+                    <SheetTitle>Add a New Payment</SheetTitle>
                     <SheetDescription>
-                        Fill in the details below to add a new customer to your ledger.
+                        Record a new payment or bill for this customer.
                     </SheetDescription>
                 </SheetHeader>
                 <Form {...form}>
                     <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6 mt-6">
                         <FormField
                             control={form.control}
-                            name="name"
+                            name="type"
                             render={({ field }) => (
-                                <FormItem>
-                                    <FormLabel>Full Name</FormLabel>
-                                    <FormControl>
-                                        <Input placeholder="John Doe" {...field} />
-                                    </FormControl>
-                                    <FormMessage />
-                                </FormItem>
-                            )}
-                        />
-                        <FormField
-                            control={form.control}
-                            name="email"
-                            render={({ field }) => (
-                                <FormItem>
-                                    <FormLabel>Email Address</FormLabel>
-                                    <FormControl>
-                                        <Input placeholder="john.doe@example.com" {...field} />
-                                    </FormControl>
-                                    <FormMessage />
-                                </FormItem>
-                            )}
-                        />
-                         <FormField
-                            control={form.control}
-                            name="phone"
-                            render={({ field }) => (
-                                <FormItem>
-                                    <FormLabel>Phone Number</FormLabel>
-                                    <FormControl>
-                                        <Input placeholder="9876543210" {...field} />
-                                    </FormControl>
-                                    <FormMessage />
-                                </FormItem>
-                            )}
-                        />
-                         <FormField
-                            control={form.control}
-                            name="address"
-                            render={({ field }) => (
-                                <FormItem>
-                                    <FormLabel>Address</FormLabel>
-                                    <FormControl>
-                                        <Input placeholder="123 Main St, Anytown" {...field} />
-                                    </FormControl>
-                                    <FormMessage />
+                                <FormItem className="space-y-3">
+                                <FormLabel>Transaction Type</FormLabel>
+                                <FormControl>
+                                    <RadioGroup
+                                    onValueChange={field.onChange}
+                                    defaultValue={field.value}
+                                    className="flex space-x-4"
+                                    >
+                                    <FormItem className="flex items-center space-x-2 space-y-0">
+                                        <FormControl>
+                                        <RadioGroupItem value="CREDIT" />
+                                        </FormControl>
+                                        <FormLabel className="font-normal">
+                                        Payment Received (Credit)
+                                        </FormLabel>
+                                    </FormItem>
+                                    <FormItem className="flex items-center space-x-2 space-y-0">
+                                        <FormControl>
+                                        <RadioGroupItem value="DEBIT" />
+                                        </FormControl>
+                                        <FormLabel className="font-normal">
+                                        New Bill (Debit)
+                                        </FormLabel>
+                                    </FormItem>
+                                    </RadioGroup>
+                                </FormControl>
+                                <FormMessage />
                                 </FormItem>
                             )}
                         />
 
-                        <Separator />
-                        
-                        <div>
-                            <h4 className="text-sm font-medium">Initial Bill (Optional)</h4>
-                            <p className="text-sm text-muted-foreground">
-                                Add an initial bill or opening balance for this customer.
-                            </p>
-                        </div>
-                        
                         <FormField
                             control={form.control}
-                            name="initialTransaction.amount"
+                            name="amount"
                             render={({ field }) => (
                                 <FormItem>
                                     <FormLabel>Amount</FormLabel>
@@ -161,7 +130,7 @@ export function AddCustomerSheet({ children }: { children: React.ReactNode }) {
 
                         <FormField
                             control={form.control}
-                            name="initialTransaction.mode"
+                            name="mode"
                             render={({ field }) => (
                                 <FormItem>
                                 <FormLabel>Payment Mode</FormLabel>
@@ -185,12 +154,12 @@ export function AddCustomerSheet({ children }: { children: React.ReactNode }) {
                         
                         <FormField
                             control={form.control}
-                            name="initialTransaction.notes"
+                            name="notes"
                             render={({ field }) => (
                                 <FormItem>
                                     <FormLabel>Notes</FormLabel>
                                     <FormControl>
-                                        <Textarea placeholder="Initial bill, opening balance, etc." {...field} />
+                                        <Textarea placeholder="Payment details, bill number, etc." {...field} />
                                     </FormControl>
                                     <FormMessage />
                                 </FormItem>
@@ -203,7 +172,7 @@ export function AddCustomerSheet({ children }: { children: React.ReactNode }) {
                                 <Button type="button" variant="ghost">Cancel</Button>
                             </SheetClose>
                             <Button type="submit" disabled={isPending}>
-                                {isPending ? "Adding..." : "Add Customer"}
+                                {isPending ? "Adding..." : "Add Payment"}
                             </Button>
                         </SheetFooter>
                     </form>

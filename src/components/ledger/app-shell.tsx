@@ -2,9 +2,7 @@
 
 import Link from "next/link";
 import {
-  Home,
   Settings,
-  PlusCircle,
   Users,
 } from "lucide-react";
 import {
@@ -15,13 +13,9 @@ import {
   SidebarMenu,
   SidebarMenuItem,
   SidebarMenuButton,
-  SidebarFooter,
-  SidebarInset,
 } from "@/components/ui/sidebar";
-import { Button } from "@/components/ui/button";
 import { Logo } from "@/components/icons";
 import { usePathname } from "next/navigation";
-import { AddCustomerSheet } from "./add-customer-sheet";
 
 export function AppShell({
   children,
@@ -61,16 +55,10 @@ export function AppShell({
             ))}
           </SidebarMenu>
         </SidebarContent>
-        <SidebarFooter>
-          <AddCustomerSheet>
-            <Button variant="outline" className="w-full justify-start gap-2">
-              <PlusCircle />
-              <span>New Customer</span>
-            </Button>
-          </AddCustomerSheet>
-        </SidebarFooter>
       </Sidebar>
-      <SidebarInset>{children}</SidebarInset>
+      <main className="flex min-h-svh flex-1 flex-col bg-background">
+        {children}
+      </main>
     </SidebarProvider>
   );
 }

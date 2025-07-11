@@ -3,9 +3,9 @@
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
 import { summarizeTransactions } from "@/ai/flows/summarize-transactions";
-import { getCustomers as getCustomersData, getCustomerById as getCustomerData, formatTransactionsForAI, addCustomer as addCustomerData } from "@/lib/data";
+import { getCustomers as getCustomersData, getCustomerById as getCustomerData, formatTransactionsForAI, addCustomer as addCustomerData, addPayment as addPaymentData } from "@/lib/data";
 import type { SummarizeTransactionsInput } from '@/ai/flows/summarize-transactions';
-import { customerSchema } from "@/lib/schemas";
+import { addCustomerSchema, paymentSchema } from "@/lib/schemas";
 
 export const getCustomers = async () => {
     const customers = await getCustomersData();
@@ -38,8 +38,8 @@ export const generateSummary = async (customerId: string, summaryType: Summarize
     }
 }
 
-export const addCustomer = async (data: z.infer<typeof customerSchema>) => {
-    const validatedFields = customerSchema.safeParse(data);
+export const addCustomer = async (data: z.infer<typeof addCustomerSchema>) => {
+    const validatedFields = addCustomerSchema.safeParse(data);
 
     if (!validatedFields.success) {
         return {
@@ -58,3 +58,24 @@ export const addCustomer = async (data: z.infer<typeof customerSchema>) => {
         };
     }
 };
+
+export const addPayment = async (data: z.infer<typeof paymentSchema>) => {
+    const validatedFields = paymentSchema.safeParse(data);
+
+    if (!validatedFields.success) {
+        return {
+            errors: validatedFields.error.flatten().fieldErrors,
+        };
+    }
+
+    try {
+        await addPaymentData(validatedFields.data);
+        revalidatePath(`/customers/${data.customerId}`);
+        return { success: true };
+    } catch (e) {
+        console.error(e);
+        return {
+             errors: { _form: ["An unexpected error occurred."] },
+        }
+    }
+}

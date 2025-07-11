@@ -1,13 +1,14 @@
-import { getCustomerById } from "@/app/actions";
+import { addPayment, getCustomerById } from "@/app/actions";
+import { AddPaymentSheet } from "@/components/ledger/add-payment-sheet";
 import { PageHeader } from "@/components/page-header";
-import { notFound } from "next/navigation";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { FileText, PlusCircle, Edit, Trash2, Mail, Phone, MapPin } from "lucide-react";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Separator } from "@/components/ui/separator";
+import { Edit, FileText, Mail, MapPin, Phone, PlusCircle, Trash2 } from "lucide-react";
 import Link from "next/link";
+import { notFound } from "next/navigation";
 import { PaymentHistoryTable } from "@/components/ledger/payment-history-table";
 import { SummaryTool } from "@/components/ledger/summary-tool";
-import { Separator } from "@/components/ui/separator";
 
 export default async function CustomerDetailPage({
   params,
@@ -89,9 +90,11 @@ export default async function CustomerDetailPage({
                 <div>
                     <CardTitle className="font-headline">Payment History</CardTitle>
                 </div>
-                <Button variant="secondary">
-                    <PlusCircle className="mr-2 h-4 w-4" /> Add Payment
-                </Button>
+                <AddPaymentSheet customerId={customer.id}>
+                    <Button variant="secondary">
+                        <PlusCircle className="mr-2 h-4 w-4" /> Add Payment
+                    </Button>
+                </AddPaymentSheet>
             </CardHeader>
             <CardContent>
                 <PaymentHistoryTable transactions={customer.transactions} />
