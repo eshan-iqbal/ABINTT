@@ -20,7 +20,9 @@ async function connectToDatabase() {
   }
   
   try {
-    const client = await MongoClient.connect(MONGODB_URI);
+    const client = await MongoClient.connect(MONGODB_URI, {
+        serverSelectionTimeoutMS: 5000 // Shorten timeout for quicker failure
+    });
 
     const db = client.db(DB_NAME);
 
@@ -28,9 +30,13 @@ async function connectToDatabase() {
     cachedDb = db;
 
     return { client, db };
-  } catch(error) {
-    console.error("Failed to connect to MongoDB. Please ensure your MongoDB server is running and accessible.", error);
-    throw new Error("Could not connect to database. Please ensure your MongoDB server is running.");
+  } catch(error: any) {
+    if (error.name === 'MongoServerSelectionError') {
+        console.error("MongoDB connection error: Could not connect to the server. Make sure MongoDB is running.", error);
+        throw new Error("Could not connect to the database. Please ensure your MongoDB server is running and accessible at the URI specified in your .env file.");
+    }
+    console.error("An unexpected database error occurred.", error);
+    throw new Error("An unexpected database error occurred.");
   }
 }
 
@@ -80,7 +86,7 @@ export const getCustomers = async (): Promise<CustomerSummary[]> => {
         });
     } catch (error) {
         console.error("Failed to fetch customers:", error);
-        throw new Error("Could not connect to the database to fetch customers. Please check your connection.");
+        throw error;
     }
 };
 
@@ -108,7 +114,7 @@ export const getCustomerById = async (id: string): Promise<CustomerWithSummary |
         };
     } catch(error) {
         console.error(`Error fetching customer by id ${id}: `, error);
-        return null;
+        throw error;
     }
 };
 
