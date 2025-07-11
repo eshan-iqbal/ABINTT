@@ -1,53 +1,40 @@
+import { MongoClient, ObjectId } from 'mongodb';
 import type { Customer, CustomerSummary, CustomerWithSummary, Transaction } from './types';
 
-const customers: Customer[] = [
-  {
-    id: '1',
-    name: 'Alice Johnson',
-    email: 'alice.j@example.com',
-    phone: '123-456-7890',
-    address: '123 Maple Street, Anytown',
-    transactions: [
-      { id: 't1', customerId: '1', date: '2024-07-01', amount: 5000, type: 'DEBIT', mode: 'OTHER', notes: 'Initial consultation fee' },
-      { id: 't2', customerId: '1', date: '2024-07-05', amount: 2000, type: 'CREDIT', mode: 'UPI', notes: 'Partial payment' },
-      { id: 't3', customerId: '1', date: '2024-07-15', amount: 1500, type: 'CREDIT', mode: 'CASH', notes: 'Final settlement' },
-    ],
-  },
-  {
-    id: '2',
-    name: 'Bob Williams',
-    email: 'bob.w@example.com',
-    phone: '234-567-8901',
-    address: '456 Oak Avenue, Somecity',
-    transactions: [
-      { id: 't4', customerId: '2', date: '2024-06-20', amount: 10000, type: 'DEBIT', mode: 'OTHER', notes: 'Project X deposit' },
-      { id: 't5', customerId: '2', date: '2024-07-10', amount: 5000, type: 'CREDIT', mode: 'CARD', notes: 'Milestone 1 payment' },
-      { id: 't6', customerId: '2', date: '2024-07-25', amount: 5000, type: 'DEBIT', mode: 'OTHER', notes: 'Additional materials' },
-    ],
-  },
-  {
-    id: '3',
-    name: 'Charlie Brown',
-    email: 'charlie.b@example.com',
-    phone: '345-678-9012',
-    address: '789 Pine Lane, Yourtown',
-    transactions: [
-      { id: 't7', customerId: '3', date: '2024-07-22', amount: 750, type: 'DEBIT', mode: 'OTHER', notes: 'Service charge' },
-      { id: 't8', customerId: '3', date: '2024-07-22', amount: 750, type: 'CREDIT', mode: 'UPI', notes: 'Paid in full' },
-    ],
-  },
-  {
-    id: '4',
-    name: 'Diana Miller',
-    email: 'diana.m@example.com',
-    phone: '456-789-0123',
-    address: '101 Birch Road, Heretown',
-    transactions: [
-      { id: 't9', customerId: '4', date: '2024-05-10', amount: 1200, type: 'DEBIT', mode: 'OTHER', notes: 'Product A' },
-      { id: 't10', customerId: '4', date: '2024-06-15', amount: 800, type: 'DEBIT', mode: 'OTHER', notes: 'Product B' },
-    ],
-  },
-];
+const MONGODB_URI = process.env.MONGODB_URI || 'mongodb://localhost:27017';
+const DB_NAME = 'tjid'; // Using 'tjid' as the database name as requested
+
+let client: MongoClient;
+let clientPromise: Promise<MongoClient>;
+
+if (!process.env.MONGODB_URI) {
+  if (process.env.NODE_ENV === 'development') {
+    // In development mode, use a global variable so that the value
+    // is preserved across module reloads caused by HMR (Hot Module Replacement).
+    let globalWithMongo = global as typeof globalThis & {
+      _mongoClientPromise?: Promise<MongoClient>
+    }
+    if (!globalWithMongo._mongoClientPromise) {
+      client = new MongoClient(MONGODB_URI);
+      globalWithMongo._mongoClientPromise = client.connect();
+    }
+    clientPromise = globalWithMongo._mongoClientPromise;
+  } else {
+    // In production mode, it's best to not use a global variable.
+    client = new MongoClient(MONGODB_URI);
+    clientPromise = client.connect();
+  }
+} else {
+    client = new MongoClient(MONGODB_URI);
+    clientPromise = client.connect();
+}
+
+
+const getDb = async () => {
+  const client = await clientPromise;
+  return client.db(DB_NAME);
+};
+
 
 const calculateSummary = (transactions: Transaction[]) => {
   const totalDue = transactions
@@ -60,33 +47,55 @@ const calculateSummary = (transactions: Transaction[]) => {
   return { totalDue, totalPaid, balance };
 };
 
-export const getCustomers = (): CustomerSummary[] => {
-  return customers.map(customer => {
-    const { totalDue, totalPaid, balance } = calculateSummary(customer.transactions);
-    return {
-      id: customer.id,
-      name: customer.name,
-      email: customer.email,
-      phone: customer.phone,
-      address: customer.address,
-      totalDue,
-      totalPaid,
-      balance,
-    };
-  });
+const mapMongoId = (doc: any) => {
+    const { _id, ...rest } = doc;
+    return { id: _id.toHexString(), ...rest };
+}
+
+export const getCustomers = async (): Promise<CustomerSummary[]> => {
+    const db = await getDb();
+    const customersCollection = db.collection<Customer>('customers');
+    const customers = await customersCollection.find({}).toArray();
+    
+    return customers.map(customer => {
+        const { totalDue, totalPaid, balance } = calculateSummary(customer.transactions || []);
+        const { transactions, ...customerWithoutTransactions } = customer;
+        const mappedCustomer = mapMongoId(customerWithoutTransactions);
+        
+        return {
+            ...mappedCustomer,
+            name: customer.name,
+            email: customer.email,
+            phone: customer.phone,
+            address: customer.address,
+            totalDue,
+            totalPaid,
+            balance,
+        };
+    });
 };
 
-export const getCustomerById = (id: string): CustomerWithSummary | undefined => {
-  const customer = customers.find(c => c.id === id);
-  if (!customer) return undefined;
 
-  const { totalDue, totalPaid, balance } = calculateSummary(customer.transactions);
-  return {
-    ...customer,
-    totalDue,
-    totalPaid,
-    balance,
-  };
+export const getCustomerById = async (id: string): Promise<CustomerWithSummary | null> => {
+    if (!ObjectId.isValid(id)) {
+        return null;
+    }
+    const db = await getDb();
+    const customersCollection = db.collection<Customer>('customers');
+    const customer = await customersCollection.findOne({ _id: new ObjectId(id) });
+    
+    if (!customer) return null;
+
+    const { totalDue, totalPaid, balance } = calculateSummary(customer.transactions || []);
+    const mappedCustomer = mapMongoId(customer);
+
+    return {
+        ...mappedCustomer,
+        transactions: (customer.transactions || []).map(t => ({...t, id: new ObjectId().toHexString()})), // add temp id for keys
+        totalDue,
+        totalPaid,
+        balance,
+    };
 };
 
 export const formatTransactionsForAI = (transactions: Transaction[]): string => {
