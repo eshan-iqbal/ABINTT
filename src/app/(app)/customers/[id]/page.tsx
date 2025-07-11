@@ -32,7 +32,7 @@ export default async function CustomerDetailPage({
   
   const balanceColor = customer.balance > 0 ? "text-destructive" : "text-green-400";
   
-  const whatsAppMessage = encodeURIComponent(`Hello ${customer.name}, this is a friendly reminder regarding your account with AB INTERIOR. Your current outstanding balance is ${formatCurrency(customer.balance)}. You can view your full statement here: ${process.env.NEXT_PUBLIC_APP_URL}/customers/${customer.id}/statement. Thank you!`);
+  const whatsAppMessage = encodeURIComponent(`Hello ${customer.name}, here is your latest payment statement from AB INTERIOR. Your current outstanding balance is ${formatCurrency(customer.balance)}. You can view your full statement here: ${process.env.NEXT_PUBLIC_APP_URL}/customers/${customer.id}/statement. Thank you!`);
   const whatsappUrl = `https://wa.me/${customer.phone}?text=${whatsAppMessage}`;
 
 
@@ -51,7 +51,7 @@ export default async function CustomerDetailPage({
           </DeleteCustomerDialog>
           <Link href={`/customers/${customer.id}/statement`} target="_blank">
             <Button>
-              <FileText className="mr-2 h-4 w-4" /> Statement
+              <FileText className="mr-2 h-4 w-4" /> View Statement
             </Button>
           </Link>
           <a href={whatsappUrl} target="_blank" rel="noopener noreferrer">

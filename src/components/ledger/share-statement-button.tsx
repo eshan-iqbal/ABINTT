@@ -61,14 +61,14 @@ export function ShareStatementButton({ customer }: { customer: CustomerWithSumma
                     text: `Hello ${customer.name}, here is your payment statement from AB INTERIOR. Your current balance is ${formatCurrency(customer.balance)}. Thank you!`,
                 });
             } else {
-                // Fallback for browsers that don't support Web Share API
+                // Fallback for browsers that don't support Web Share API (e.g., desktop)
                 const link = document.createElement('a');
                 link.href = URL.createObjectURL(pdfBlob);
                 link.download = `statement-${customer.name.replace(/\s+/g, '_')}.pdf`;
                 document.body.appendChild(link);
                 link.click();
                 document.body.removeChild(link);
-                alert("Statement downloaded. You can now share it via WhatsApp manually.");
+                alert("Statement downloaded as PDF. You can now share the downloaded file manually.");
             }
         } catch (error) {
             console.error("Error generating or sharing PDF:", error);
