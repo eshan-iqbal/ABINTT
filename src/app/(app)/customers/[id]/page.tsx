@@ -30,7 +30,7 @@ export default async function CustomerDetailPage({
     }).format(amount);
   };
   
-  const balanceColor = customer.balance > 0 ? "text-destructive" : "text-green-400";
+  const balanceColor = "text-blue-500";
   
   const appUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:9002';
   const statementUrl = `${appUrl}/customers/${customer.id}/statement`;

@@ -5,6 +5,7 @@ import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow, TableFooter } from "@/components/ui/table";
 import { notFound } from "next/navigation";
+import type { Transaction } from "@/lib/types";
 
 export default async function StatementPage({
   params,
@@ -70,7 +71,7 @@ export default async function StatementPage({
               </TableRow>
             </TableHeader>
             <TableBody>
-              {customer.transactions.map((t) => (
+              {customer.transactions.map((t: Transaction) => (
                 <TableRow key={t.id}>
                   <TableCell>{formatDate(t.date)}</TableCell>
                   <TableCell className="max-w-[300px]">{t.notes}</TableCell>
@@ -97,7 +98,7 @@ export default async function StatementPage({
                 </TableRow>
                 <TableRow className="bg-gray-100">
                     <TableCell colSpan={3} className="text-right font-bold text-xl">Balance</TableCell>
-                    <TableCell className={`text-right font-bold text-xl ${customer.balance > 0 ? 'text-red-600' : 'text-green-600'}`}>
+                    <TableCell className="text-right font-bold text-xl text-blue-500">
                         {formatCurrency(customer.balance)}
                     </TableCell>
                 </TableRow>

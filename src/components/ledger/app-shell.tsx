@@ -26,7 +26,6 @@ export function AppShell({
 
   const menuItems = [
     { href: "/customers", label: "Customers", icon: Users },
-    { href: "/settings", label: "Settings", icon: Settings },
   ];
 
   return (

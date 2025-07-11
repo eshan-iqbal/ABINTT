@@ -165,6 +165,9 @@ export function CustomerTable({
                         <TableRow>
                             <SortableHeader columnKey="name">Name</SortableHeader>
                             <SortableHeader columnKey="phone">Phone</SortableHeader>
+                            <TableHead>Email</TableHead>
+                            <TableHead>Address</TableHead>
+                            <TableHead>Reg Date</TableHead>
                             <SortableHeader columnKey="balance" className="text-right">Balance</SortableHeader>
                             <TableHead className="text-right w-[150px]">Actions</TableHead>
                         </TableRow>
@@ -173,14 +176,17 @@ export function CustomerTable({
                         {sortedCustomers.length > 0 ? sortedCustomers.map((customer) => {
                             const appUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:9002';
                             const statementUrl = `${appUrl}/customers/${customer.id}/statement`;
-                            const whatsAppMessage = encodeURIComponent(`Hello ${customer.name}, here is your latest payment statement from AB INTERIOR. Your current outstanding balance is ${formatCurrency(customer.balance)}. You can view your full statement here: ${statementUrl}. Thank you!`);
+                            const whatsAppMessage = encodeURIComponent(`Hi ${customer.name}, this is a reminder from AB INTERIOR. Your current balance is ${formatCurrency(customer.balance)}. For details, view your statement: ${statementUrl}. If you have any questions, feel free to contact us!`);
                             const whatsappUrl = `https://wa.me/${customer.phone}?text=${whatsAppMessage}`;
                             
                             return (
                             <TableRow key={customer.id}>
                             <TableCell className="font-medium">{customer.name}</TableCell>
                             <TableCell>{customer.phone}</TableCell>
-                            <TableCell className={`text-right font-medium ${customer.balance > 0 ? 'text-destructive' : 'text-green-400'}`}>
+                            <TableCell>{customer.email}</TableCell>
+                            <TableCell>{customer.address}</TableCell>
+                            <TableCell>-</TableCell> {/* Registration date placeholder */}
+                            <TableCell className={`text-right font-medium text-blue-500`}>
                                 {formatCurrency(customer.balance)}
                             </TableCell>
                             <TableCell className="text-right">
