@@ -102,10 +102,12 @@ export function PaymentHistoryTable({
       if (isNaN(date.getTime())) {
         return 'Invalid Date';
       }
+      // Use UTC methods to avoid timezone issues during hydration
       return date.toLocaleDateString('en-US', {
           year: 'numeric',
           month: 'long',
-          day: 'numeric'
+          day: 'numeric',
+          timeZone: 'UTC'
       });
   }
 
