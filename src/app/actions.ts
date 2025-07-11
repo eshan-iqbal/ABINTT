@@ -5,6 +5,7 @@ import { z } from "zod";
 import { summarizeTransactions } from "@/ai/flows/summarize-transactions";
 import { getCustomers as getCustomersData, getCustomerById as getCustomerData, formatTransactionsForAI, addCustomer as addCustomerData } from "@/lib/data";
 import type { SummarizeTransactionsInput } from '@/ai/flows/summarize-transactions';
+import { customerSchema } from "@/lib/schemas";
 
 export const getCustomers = async () => {
     const customers = await getCustomersData();
@@ -36,13 +37,6 @@ export const generateSummary = async (customerId: string, summaryType: Summarize
         return "Sorry, I couldn't generate a summary at this time.";
     }
 }
-
-export const customerSchema = z.object({
-    name: z.string().min(2, { message: "Name must be at least 2 characters." }),
-    email: z.string().email({ message: "Please enter a valid email." }),
-    phone: z.string().min(10, { message: "Phone number must be at least 10 digits." }),
-    address: z.string().min(5, { message: "Address must be at least 5 characters." }),
-});
 
 export const addCustomer = async (data: z.infer<typeof customerSchema>) => {
     const validatedFields = customerSchema.safeParse(data);

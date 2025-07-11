@@ -1,7 +1,7 @@
 import { MongoClient, ObjectId } from 'mongodb';
 import type { Customer, CustomerSummary, CustomerWithSummary, Transaction } from './types';
-import { customerSchema } from '@/app/actions';
 import { z } from 'zod';
+import { customerSchema } from './schemas';
 
 
 const MONGODB_URI = process.env.MONGODB_URI;

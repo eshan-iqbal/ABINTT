@@ -23,10 +23,10 @@ import {
   SheetFooter,
   SheetClose,
 } from "@/components/ui/sheet";
-import { addCustomer, customerSchema } from "@/app/actions";
+import { addCustomer } from "@/app/actions";
 import { useToast } from "@/hooks/use-toast";
 import { useState, useTransition } from "react";
-import { PlusCircle } from "lucide-react";
+import { customerSchema } from "@/lib/schemas";
 
 export function AddCustomerSheet({ children }: { children: React.ReactNode }) {
     const [open, setOpen] = useState(false);
