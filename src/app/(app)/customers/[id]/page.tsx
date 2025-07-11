@@ -1,0 +1,106 @@
+import { getCustomerById } from "@/app/actions";
+import { PageHeader } from "@/components/page-header";
+import { notFound } from "next/navigation";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { FileText, PlusCircle, Edit, Trash2, Mail, Phone, MapPin } from "lucide-react";
+import Link from "next/link";
+import { PaymentHistoryTable } from "@/components/ledger/payment-history-table";
+import { SummaryTool } from "@/components/ledger/summary-tool";
+import { Separator } from "@/components/ui/separator";
+
+export default async function CustomerDetailPage({
+  params,
+}: {
+  params: { id: string };
+}) {
+  const customer = await getCustomerById(params.id);
+
+  if (!customer) {
+    notFound();
+  }
+
+  const formatCurrency = (amount: number) => {
+    return new Intl.NumberFormat("en-US", {
+      style: "currency",
+      currency: "USD",
+    }).format(amount);
+  };
+  
+  const balanceColor = customer.balance > 0 ? "text-destructive" : "text-green-400";
+
+  return (
+    <div className="flex flex-col h-full">
+      <PageHeader
+        title={customer.name}
+        description={`Manage ${customer.name}'s payment ledger.`}
+      >
+        <div className="flex flex-wrap items-center gap-2">
+          <Button variant="outline">
+            <Edit className="mr-2 h-4 w-4" /> Edit Customer
+          </Button>
+          <Button variant="destructive">
+            <Trash2 className="mr-2 h-4 w-4" /> Delete
+          </Button>
+          <Link href={`/customers/${customer.id}/statement`} target="_blank">
+            <Button>
+              <FileText className="mr-2 h-4 w-4" /> Generate Statement
+            </Button>
+          </Link>
+        </div>
+      </PageHeader>
+      <main className="flex-1 overflow-y-auto p-4 sm:p-6 md:p-8 space-y-6">
+        <Card>
+          <CardHeader>
+            <CardTitle className="font-headline">Customer Details</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4 text-sm">
+                <div className="flex items-center gap-2">
+                    <Mail className="h-4 w-4 text-muted-foreground"/> <span>{customer.email}</span>
+                </div>
+                <div className="flex items-center gap-2">
+                    <Phone className="h-4 w-4 text-muted-foreground"/> <span>{customer.phone}</span>
+                </div>
+                 <div className="flex items-center gap-2 col-span-full sm:col-span-1">
+                    <MapPin className="h-4 w-4 text-muted-foreground"/> <span>{customer.address}</span>
+                </div>
+            </div>
+            <Separator/>
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-center pt-2">
+                <div>
+                    <p className="text-sm text-muted-foreground">Total Paid</p>
+                    <p className="text-2xl font-bold text-green-400">{formatCurrency(customer.totalPaid)}</p>
+                </div>
+                <div>
+                    <p className="text-sm text-muted-foreground">Total Due</p>
+                    <p className="text-2xl font-bold text-orange-400">{formatCurrency(customer.totalDue)}</p>
+                </div>
+                <div>
+                    <p className="text-sm text-muted-foreground">Balance</p>
+                    <p className={`text-2xl font-bold ${balanceColor}`}>{formatCurrency(customer.balance)}</p>
+                </div>
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card>
+            <CardHeader className="flex flex-row items-center justify-between">
+                <div>
+                    <CardTitle className="font-headline">Payment History</CardTitle>
+                </div>
+                <Button variant="secondary">
+                    <PlusCircle className="mr-2 h-4 w-4" /> Add Payment
+                </Button>
+            </CardHeader>
+            <CardContent>
+                <PaymentHistoryTable transactions={customer.transactions} />
+            </CardContent>
+        </Card>
+        
+        <SummaryTool customerId={customer.id} />
+
+      </main>
+    </div>
+  );
+}
