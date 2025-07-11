@@ -166,7 +166,7 @@ export function CustomerTable({
                             <SortableHeader columnKey="name">Name</SortableHeader>
                             <SortableHeader columnKey="phone">Phone</SortableHeader>
                             <SortableHeader columnKey="balance" className="text-right">Balance</SortableHeader>
-                            <TableHead className="text-right w-[100px]">Actions</TableHead>
+                            <TableHead className="text-right w-[150px]">Actions</TableHead>
                         </TableRow>
                         </TableHeader>
                         <TableBody>
@@ -184,6 +184,12 @@ export function CustomerTable({
                                 {formatCurrency(customer.balance)}
                             </TableCell>
                             <TableCell className="text-right">
+                                <div className="flex items-center justify-end gap-2">
+                                <Link href={`/customers/${customer.id}`}>
+                                    <Button variant="outline" size="sm">
+                                        <View className="mr-2 h-4 w-4" /> View
+                                    </Button>
+                                </Link>
                                 <DropdownMenu>
                                 <DropdownMenuTrigger asChild>
                                     <Button variant="ghost" size="icon">
@@ -192,11 +198,6 @@ export function CustomerTable({
                                     </Button>
                                 </DropdownMenuTrigger>
                                 <DropdownMenuContent align="end">
-                                    <DropdownMenuItem asChild>
-                                    <Link href={`/customers/${customer.id}`}>
-                                        <View className="mr-2 h-4 w-4" /> View Details
-                                    </Link>
-                                    </DropdownMenuItem>
                                     <DropdownMenuItem asChild>
                                       <Link href={`/customers/${customer.id}/statement`} target="_blank">
                                           <FileText className="mr-2 h-4 w-4" /> View Statement
@@ -220,6 +221,7 @@ export function CustomerTable({
                                     </DeleteCustomerDialog>
                                 </DropdownMenuContent>
                                 </DropdownMenu>
+                                </div>
                             </TableCell>
                             </TableRow>
                         )}) : (
