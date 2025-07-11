@@ -1,5 +1,8 @@
 import { MongoClient, ObjectId } from 'mongodb';
 import type { Customer, CustomerSummary, CustomerWithSummary, Transaction } from './types';
+import { customerSchema } from '@/app/actions';
+import { z } from 'zod';
+
 
 const MONGODB_URI = process.env.MONGODB_URI;
 const DB_NAME = 'tjid'; 
@@ -56,7 +59,7 @@ const mapMongoId = (doc: any) => {
 export const getCustomers = async (): Promise<CustomerSummary[]> => {
     const db = await getDb();
     const customersCollection = db.collection<Customer>('customers');
-    const customers = await customersCollection.find({}).toArray();
+    const customers = await customersCollection.find({}).sort({ name: 1 }).toArray();
     
     return customers.map((customer: any) => {
         const { totalDue, totalPaid, balance } = calculateSummary(customer.transactions || []);
@@ -103,6 +106,18 @@ export const getCustomerById = async (id: string): Promise<CustomerWithSummary |
         return null;
     }
 };
+
+export const addCustomer = async (data: z.infer<typeof customerSchema>) => {
+    const db = await getDb();
+    const customersCollection = db.collection('customers');
+    const customerData = {
+        ...data,
+        transactions: [],
+        createdAt: new Date(),
+    };
+    await customersCollection.insertOne(customerData);
+};
+
 
 export const formatTransactionsForAI = (transactions: Transaction[]): string => {
   return transactions

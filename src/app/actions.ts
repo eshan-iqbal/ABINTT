@@ -1,7 +1,9 @@
 "use server";
 
+import { revalidatePath } from "next/cache";
+import { z } from "zod";
 import { summarizeTransactions } from "@/ai/flows/summarize-transactions";
-import { getCustomers as getCustomersData, getCustomerById as getCustomerData, formatTransactionsForAI } from "@/lib/data";
+import { getCustomers as getCustomersData, getCustomerById as getCustomerData, formatTransactionsForAI, addCustomer as addCustomerData } from "@/lib/data";
 import type { SummarizeTransactionsInput } from '@/ai/flows/summarize-transactions';
 
 export const getCustomers = async () => {
@@ -34,3 +36,31 @@ export const generateSummary = async (customerId: string, summaryType: Summarize
         return "Sorry, I couldn't generate a summary at this time.";
     }
 }
+
+export const customerSchema = z.object({
+    name: z.string().min(2, { message: "Name must be at least 2 characters." }),
+    email: z.string().email({ message: "Please enter a valid email." }),
+    phone: z.string().min(10, { message: "Phone number must be at least 10 digits." }),
+    address: z.string().min(5, { message: "Address must be at least 5 characters." }),
+});
+
+export const addCustomer = async (data: z.infer<typeof customerSchema>) => {
+    const validatedFields = customerSchema.safeParse(data);
+
+    if (!validatedFields.success) {
+        return {
+            errors: validatedFields.error.flatten().fieldErrors,
+        };
+    }
+
+    try {
+        await addCustomerData(validatedFields.data);
+        revalidatePath('/customers');
+        return { success: true };
+    } catch (e) {
+        console.error(e);
+        return {
+            errors: { _form: ["An unexpected error occurred."] },
+        };
+    }
+};

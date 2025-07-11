@@ -1,4 +1,5 @@
 import { getCustomers } from "@/app/actions";
+import { AddCustomerSheet } from "@/components/ledger/add-customer-sheet";
 import { CustomerCard } from "@/components/ledger/customer-card";
 import { PageHeader } from "@/components/page-header";
 import { Button } from "@/components/ui/button";
@@ -20,9 +21,11 @@ export default async function DashboardPage() {
                 <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
                 <Input placeholder="Search customers..." className="pl-8 w-48 md:w-64" />
             </div>
-            <Button>
-                <PlusCircle className="mr-2 h-4 w-4" /> Add Customer
-            </Button>
+            <AddCustomerSheet>
+                <Button>
+                    <PlusCircle className="mr-2 h-4 w-4" /> Add Customer
+                </Button>
+            </AddCustomerSheet>
         </div>
       </PageHeader>
       <main className="flex-1 overflow-y-auto p-4 sm:p-6 md:p-8">
@@ -38,9 +41,11 @@ export default async function DashboardPage() {
             <p className="text-muted-foreground mt-2">
               Get started by adding your first customer.
             </p>
-            <Button className="mt-4">
-              <PlusCircle className="mr-2 h-4 w-4" /> Add Customer
-            </Button>
+            <AddCustomerSheet>
+                <Button className="mt-4">
+                  <PlusCircle className="mr-2 h-4 w-4" /> Add Customer
+                </Button>
+            </AddCustomerSheet>
           </div>
         )}
       </main>
