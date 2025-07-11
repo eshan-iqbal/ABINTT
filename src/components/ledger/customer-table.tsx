@@ -17,6 +17,7 @@ import {
   ArrowUpDown,
   DatabaseZap,
   Edit,
+  FileText,
   MessageCircle,
   MoreVertical,
   PlusCircle,
@@ -26,7 +27,7 @@ import {
 } from "lucide-react";
 import Link from "next/link";
 import { Button } from "../ui/button";
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "../ui/dropdown-menu";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from "../ui/dropdown-menu";
 import { EditCustomerSheet } from "./edit-customer-sheet";
 import { DeleteCustomerDialog } from "./delete-customer-dialog";
 import { PageHeader } from "../page-header";
@@ -196,20 +197,26 @@ export function CustomerTable({
                                         <View className="mr-2 h-4 w-4" /> View Details
                                     </Link>
                                     </DropdownMenuItem>
+                                    <DropdownMenuItem asChild>
+                                      <Link href={`/customers/${customer.id}/statement`} target="_blank">
+                                          <FileText className="mr-2 h-4 w-4" /> View Statement
+                                      </Link>
+                                    </DropdownMenuItem>
                                     <a href={whatsappUrl} target="_blank" rel="noopener noreferrer" className="block">
                                         <DropdownMenuItem onSelect={(e) => e.preventDefault()}>
                                             <MessageCircle className="mr-2 h-4 w-4" /> Send Reminder
                                         </DropdownMenuItem>
                                     </a>
+                                    <DropdownMenuSeparator />
                                     <EditCustomerSheet customer={customer as any}>
-                                    <DropdownMenuItem onSelect={(e) => e.preventDefault()}>
-                                        <Edit className="mr-2 h-4 w-4" /> Edit
-                                    </DropdownMenuItem>
+                                      <DropdownMenuItem onSelect={(e) => e.preventDefault()}>
+                                          <Edit className="mr-2 h-4 w-4" /> Edit
+                                      </DropdownMenuItem>
                                     </EditCustomerSheet>
                                     <DeleteCustomerDialog customerId={customer.id}>
-                                    <DropdownMenuItem onSelect={(e) => e.preventDefault()} className="text-destructive focus:text-destructive focus:bg-destructive/10">
-                                        <Trash2 className="mr-2 h-4 w-4" /> Delete
-                                    </DropdownMenuItem>
+                                      <DropdownMenuItem onSelect={(e) => e.preventDefault()} className="text-destructive focus:text-destructive focus:bg-destructive/10">
+                                          <Trash2 className="mr-2 h-4 w-4" /> Delete
+                                      </DropdownMenuItem>
                                     </DeleteCustomerDialog>
                                 </DropdownMenuContent>
                                 </DropdownMenu>
