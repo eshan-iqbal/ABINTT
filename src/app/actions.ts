@@ -11,6 +11,8 @@ import type { Transaction } from "@/lib/types";
 
 export const getCustomers = async () => {
     const customers = await getCustomersData();
+    // Return null on db connection error to be handled by the UI
+    if (customers === null) return null;
     return JSON.parse(JSON.stringify(customers));
 }
 

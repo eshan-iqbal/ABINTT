@@ -33,7 +33,8 @@ async function connectToDatabase() {
   } catch(error: any) {
     if (error.name === 'MongoServerSelectionError') {
         console.error("MongoDB connection error: Could not connect to the server. Make sure MongoDB is running.", error);
-        throw new Error("Could not connect to the database. Please ensure your MongoDB server is running and accessible at the URI specified in your .env file.");
+        // Do not throw, allow getDb to return null
+        return { client: null, db: null };
     }
     console.error("An unexpected database error occurred.", error);
     throw new Error("An unexpected database error occurred.");
@@ -67,12 +68,12 @@ const mapMongoId = (doc: any) => {
     return { id: _id.toHexString(), ...rest };
 }
 
-export const getCustomers = async (): Promise<CustomerSummary[]> => {
+export const getCustomers = async (): Promise<CustomerSummary[] | null> => {
     try {
         const db = await getDb();
         if (!db) {
-            console.log("Database not connected, returning empty customer list.");
-            return [];
+            console.log("Database not connected, returning null for customer list.");
+            return null; // Return null to indicate connection failure
         }
         const customersCollection = db.collection<Customer>('customers');
         const customers = await customersCollection.find({}).sort({ name: 1 }).toArray();
@@ -95,8 +96,8 @@ export const getCustomers = async (): Promise<CustomerSummary[]> => {
         });
     } catch (error) {
         console.error("Failed to fetch customers:", error);
-        // Don't re-throw, return empty array to prevent crash
-        return [];
+        // Don't re-throw, return null to prevent crash
+        return null;
     }
 };
 

@@ -37,7 +37,7 @@ type SortKey = keyof CustomerSummary | 'balance';
 export function CustomerTable({
   customers,
 }: {
-  customers: CustomerSummary[];
+  customers: CustomerSummary[] | null;
 }) {
   const [searchQuery, setSearchQuery] = React.useState("");
   const [sortKey, setSortKey] = React.useState<SortKey>("name");
@@ -119,7 +119,7 @@ export function CustomerTable({
   // A bit of a hack to detect if the db is offline. If getCustomers returns empty, we show a message.
   // This is not perfect, as an empty customer list is a valid state.
   // A more robust solution would involve a dedicated health check endpoint.
-  if (!customers) {
+  if (customers === null) {
      return (
         <div className="flex flex-col items-center justify-center h-[50vh] text-center border-2 border-dashed rounded-lg m-8">
             <DatabaseZap className="h-12 w-12 text-destructive" />
