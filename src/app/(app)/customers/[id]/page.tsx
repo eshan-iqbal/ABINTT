@@ -4,7 +4,7 @@ import { PageHeader } from "@/components/page-header";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
-import { FileText, Mail, MapPin, Phone, PlusCircle, Trash2 } from "lucide-react";
+import { FileText, Mail, MapPin, Phone, PlusCircle, Trash2, MessageCircle } from "lucide-react";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { PaymentHistoryTable } from "@/components/ledger/payment-history-table";
@@ -31,6 +31,10 @@ export default async function CustomerDetailPage({
   };
   
   const balanceColor = customer.balance > 0 ? "text-destructive" : "text-green-400";
+  
+  const whatsAppMessage = encodeURIComponent(`Hello ${customer.name}, this is a friendly reminder regarding your account with LedgerLite. Your current outstanding balance is ${formatCurrency(customer.balance)}. You can view your full statement here: ${process.env.NEXT_PUBLIC_APP_URL}/customers/${customer.id}/statement. Thank you!`);
+  const whatsappUrl = `https://wa.me/${customer.phone}?text=${whatsAppMessage}`;
+
 
   return (
     <div className="flex flex-col h-full">
@@ -47,9 +51,14 @@ export default async function CustomerDetailPage({
           </DeleteCustomerDialog>
           <Link href={`/customers/${customer.id}/statement`} target="_blank">
             <Button>
-              <FileText className="mr-2 h-4 w-4" /> Generate Statement
+              <FileText className="mr-2 h-4 w-4" /> Statement
             </Button>
           </Link>
+          <a href={whatsappUrl} target="_blank" rel="noopener noreferrer">
+             <Button variant="secondary">
+                <MessageCircle className="mr-2 h-4 w-4" /> Send Reminder
+            </Button>
+          </a>
         </div>
       </PageHeader>
       <main className="flex-1 overflow-y-auto p-4 sm:p-6 md:p-8 space-y-6">
