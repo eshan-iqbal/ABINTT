@@ -32,7 +32,7 @@ export default async function CustomerDetailPage({
   
   const balanceColor = customer.balance > 0 ? "text-destructive" : "text-green-400";
   
-  const whatsAppMessage = encodeURIComponent(`Hello ${customer.name}, this is a friendly reminder regarding your account with LedgerLite. Your current outstanding balance is ${formatCurrency(customer.balance)}. You can view your full statement here: ${process.env.NEXT_PUBLIC_APP_URL}/customers/${customer.id}/statement. Thank you!`);
+  const whatsAppMessage = encodeURIComponent(`Hello ${customer.name}, this is a friendly reminder regarding your account with AB INTERIOR. Your current outstanding balance is ${formatCurrency(customer.balance)}. You can view your full statement here: ${process.env.NEXT_PUBLIC_APP_URL}/customers/${customer.id}/statement. Thank you!`);
   const whatsappUrl = `https://wa.me/${customer.phone}?text=${whatsAppMessage}`;
 
 

@@ -46,9 +46,14 @@ export const addCustomer = async (data: z.infer<typeof addCustomerSchema>) => {
             errors: validatedFields.error.flatten().fieldErrors,
         };
     }
+    
+    const processedData = {
+        ...validatedFields.data,
+        phone: `+91${validatedFields.data.phone}`,
+    }
 
     try {
-        await addCustomerData(validatedFields.data);
+        await addCustomerData(processedData);
         revalidatePath('/customers');
         return { success: true };
     } catch (e) {

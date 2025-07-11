@@ -40,7 +40,7 @@ export default async function StatementPage({
             <div>
                 <div className="flex items-center gap-3 mb-2">
                     <Logo className="size-10 text-gray-800" />
-                    <h1 className="text-4xl font-bold text-gray-800 font-headline">LedgerLite</h1>
+                    <h1 className="text-4xl font-bold text-gray-800 font-headline">AB INTERIOR</h1>
                 </div>
                 <p className="text-gray-500">Payment Statement</p>
             </div>

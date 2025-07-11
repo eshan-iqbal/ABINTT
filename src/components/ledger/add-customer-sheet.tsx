@@ -30,6 +30,7 @@ import { addCustomerSchema } from "@/lib/schemas";
 import { Separator } from "../ui/separator";
 import { Textarea } from "../ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../ui/select";
+import { cn } from "@/lib/utils";
 
 export function AddCustomerSheet({ children }: { children: React.ReactNode }) {
     const [open, setOpen] = useState(false);
@@ -115,9 +116,19 @@ export function AddCustomerSheet({ children }: { children: React.ReactNode }) {
                             render={({ field }) => (
                                 <FormItem>
                                     <FormLabel>Phone Number</FormLabel>
-                                    <FormControl>
-                                        <Input placeholder="9876543210" {...field} />
-                                    </FormControl>
+                                     <div className="flex items-center">
+                                        <span className="inline-flex items-center px-3 rounded-l-md border border-r-0 border-input bg-background text-sm text-muted-foreground">
+                                            +91
+                                        </span>
+                                        <FormControl>
+                                            <Input 
+                                                type="tel" 
+                                                placeholder="9876543210" 
+                                                className="rounded-l-none" 
+                                                {...field} 
+                                            />
+                                        </FormControl>
+                                    </div>
                                     <FormMessage />
                                 </FormItem>
                             )}

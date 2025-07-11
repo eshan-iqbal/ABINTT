@@ -5,8 +5,8 @@ import { cn } from '@/lib/utils';
 import { AppShell } from '@/components/ledger/app-shell';
 
 export const metadata: Metadata = {
-  title: 'LedgerLite',
-  description: 'A modern customer payment ledger application.',
+  title: 'AB INTERIOR',
+  description: 'A modern customer payment ledger application for AB Interior.',
 };
 
 export default function RootLayout({
