@@ -4,7 +4,7 @@ import { z } from 'zod';
 import { addCustomerSchema, customerSchema, paymentSchema } from './schemas';
 
 
-const MONGODB_URI = process.env.MONGODB_URI;
+const MONGODB_URI = process.env.MONGODB_URI || "mongodb://127.0.0.1:27017";
 const DB_NAME = 'tjid'; 
 
 if (!MONGODB_URI) {
