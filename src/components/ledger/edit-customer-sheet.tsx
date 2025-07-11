@@ -36,23 +36,26 @@ export function EditCustomerSheet({ customer, children }: { customer: CustomerWi
     const [open, setOpen] = useState(false);
     const [isPending, startTransition] = useTransition();
     const { toast } = useToast();
+    
+    const phoneWithoutPrefix = customer.phone.startsWith('+91') ? customer.phone.slice(3) : customer.phone;
 
     const form = useForm<z.infer<typeof customerSchema>>({
         resolver: zodResolver(customerSchema),
         defaultValues: {
             name: customer.name,
             email: customer.email,
-            phone: customer.phone,
+            phone: phoneWithoutPrefix,
             address: customer.address,
         },
     });
 
     React.useEffect(() => {
         if (open) {
+            const phoneToSet = customer.phone.startsWith('+91') ? customer.phone.slice(3) : customer.phone;
             form.reset({
                 name: customer.name,
                 email: customer.email,
-                phone: customer.phone,
+                phone: phoneToSet,
                 address: customer.address,
             });
         }
@@ -60,7 +63,12 @@ export function EditCustomerSheet({ customer, children }: { customer: CustomerWi
 
     function onSubmit(values: z.infer<typeof customerSchema>) {
         startTransition(async () => {
-            const result = await updateCustomer(customer.id, values);
+            const dataToSubmit = {
+                ...values,
+                phone: `+91${values.phone}`
+            };
+
+            const result = await updateCustomer(customer.id, dataToSubmit);
             if (result?.errors) {
                  toast({
                     title: "Error updating customer",
@@ -127,9 +135,19 @@ export function EditCustomerSheet({ customer, children }: { customer: CustomerWi
                             render={({ field }) => (
                                 <FormItem>
                                     <FormLabel>Phone Number</FormLabel>
-                                    <FormControl>
-                                        <Input placeholder="9876543210" {...field} />
-                                    </FormControl>
+                                     <div className="flex items-center">
+                                        <span className="inline-flex items-center px-3 rounded-l-md border border-r-0 border-input bg-background text-sm text-muted-foreground">
+                                            +91
+                                        </span>
+                                        <FormControl>
+                                            <Input 
+                                                type="tel" 
+                                                placeholder="9876543210" 
+                                                className="rounded-l-none" 
+                                                {...field} 
+                                            />
+                                        </FormControl>
+                                    </div>
                                     <FormMessage />
                                 </FormItem>
                             )}

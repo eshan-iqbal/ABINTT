@@ -103,7 +103,9 @@ export const deleteCustomer = async (customerId: string) => {
 }
 
 export const updateCustomer = async (customerId: string, data: z.infer<typeof customerSchema>) => {
-    const validatedFields = customerSchema.safeParse(data);
+    // Re-validate against a schema that expects the full phone number
+    const updateSchema = customerSchema.extend({ phone: z.string() });
+    const validatedFields = updateSchema.safeParse(data);
 
     if (!validatedFields.success) {
         return {
