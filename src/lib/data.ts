@@ -41,8 +41,13 @@ async function connectToDatabase() {
 }
 
 const getDb = async () => {
-  const { db } = await connectToDatabase();
-  return db;
+    try {
+        const { db } = await connectToDatabase();
+        return db;
+    } catch(e) {
+        console.error("Failed to connect to database in getDb()", e);
+        return null;
+    }
 };
 
 
@@ -65,6 +70,10 @@ const mapMongoId = (doc: any) => {
 export const getCustomers = async (): Promise<CustomerSummary[]> => {
     try {
         const db = await getDb();
+        if (!db) {
+            console.log("Database not connected, returning empty customer list.");
+            return [];
+        }
         const customersCollection = db.collection<Customer>('customers');
         const customers = await customersCollection.find({}).sort({ name: 1 }).toArray();
         
@@ -86,7 +95,8 @@ export const getCustomers = async (): Promise<CustomerSummary[]> => {
         });
     } catch (error) {
         console.error("Failed to fetch customers:", error);
-        throw error;
+        // Don't re-throw, return empty array to prevent crash
+        return [];
     }
 };
 
@@ -97,6 +107,10 @@ export const getCustomerById = async (id: string): Promise<CustomerWithSummary |
             return null;
         }
         const db = await getDb();
+        if (!db) {
+            console.log(`Database not connected, cannot get customer by id ${id}.`);
+            return null;
+        }
         const customersCollection = db.collection('customers');
         const customer = await customersCollection.findOne({ _id: new ObjectId(id) });
         
@@ -114,12 +128,13 @@ export const getCustomerById = async (id: string): Promise<CustomerWithSummary |
         };
     } catch(error) {
         console.error(`Error fetching customer by id ${id}: `, error);
-        throw error;
+        return null;
     }
 };
 
 export const addCustomer = async (data: z.infer<typeof addCustomerSchema>) => {
     const db = await getDb();
+    if(!db) throw new Error("Database not connected.");
     const customersCollection = db.collection('customers');
     
     const transactions = [];
@@ -150,6 +165,7 @@ export const addPayment = async (data: z.infer<typeof paymentSchema>) => {
         throw new Error("Invalid customer ID");
     }
     const db = await getDb();
+    if(!db) throw new Error("Database not connected.");
     const customersCollection = db.collection('customers');
 
     const paymentData = {
@@ -172,6 +188,7 @@ export const deleteCustomer = async (customerId: string) => {
         throw new Error("Invalid customer ID");
     }
     const db = await getDb();
+    if(!db) throw new Error("Database not connected.");
     const customersCollection = db.collection('customers');
 
     const result = await customersCollection.deleteOne({ _id: new ObjectId(customerId) });
@@ -185,6 +202,7 @@ export const updateCustomer = async (customerId: string, data: z.infer<typeof cu
         throw new Error("Invalid customer ID");
     }
     const db = await getDb();
+    if(!db) throw new Error("Database not connected.");
     const customersCollection = db.collection('customers');
 
     await customersCollection.updateOne(
@@ -203,6 +221,7 @@ export const updateTransaction = async (customerId: string, transactionId: strin
         throw new Error("Invalid ID");
     }
     const db = await getDb();
+    if(!db) throw new Error("Database not connected.");
     const customersCollection = db.collection('customers');
 
     await customersCollection.updateOne(
@@ -224,6 +243,7 @@ export const deleteTransaction = async (customerId: string, transactionId: strin
         throw new Error("Invalid ID");
     }
     const db = await getDb();
+    if(!db) throw new Error("Database not connected.");
     const customersCollection = db.collection('customers');
 
     await customersCollection.updateOne(

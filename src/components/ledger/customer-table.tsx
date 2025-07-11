@@ -15,6 +15,7 @@ import {
     ArrowDown,
     ArrowUp,
   ArrowUpDown,
+  DatabaseZap,
   Edit,
   MoreVertical,
   PlusCircle,
@@ -41,8 +42,14 @@ export function CustomerTable({
   const [searchQuery, setSearchQuery] = React.useState("");
   const [sortKey, setSortKey] = React.useState<SortKey>("name");
   const [sortOrder, setSortOrder] = React.useState<"asc" | "desc">("asc");
+  const [isClient, setIsClient] = React.useState(false);
+
+  React.useEffect(() => {
+    setIsClient(true);
+  }, []);
 
   const filteredCustomers = React.useMemo(() => {
+    if (!customers) return [];
     return customers.filter(customer => 
       customer.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
       customer.phone.includes(searchQuery)
@@ -104,6 +111,25 @@ export function CustomerTable({
       currency: "INR",
     }).format(amount);
   };
+  
+  if (!isClient) {
+    return null; 
+  }
+
+  // A bit of a hack to detect if the db is offline. If getCustomers returns empty, we show a message.
+  // This is not perfect, as an empty customer list is a valid state.
+  // A more robust solution would involve a dedicated health check endpoint.
+  if (!customers) {
+     return (
+        <div className="flex flex-col items-center justify-center h-[50vh] text-center border-2 border-dashed rounded-lg m-8">
+            <DatabaseZap className="h-12 w-12 text-destructive" />
+            <h2 className="text-2xl font-semibold mt-4">Database Connection Error</h2>
+            <p className="text-muted-foreground mt-2 max-w-md">
+                The application could not connect to the database. Please make sure your MongoDB server is running and accessible.
+            </p>
+        </div>
+     )
+  }
   
   return (
     <div className="flex flex-col h-full">
