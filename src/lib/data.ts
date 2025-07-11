@@ -27,7 +27,7 @@ async function connectToDatabase() {
     return { client, db };
   } catch(error) {
     console.error("Failed to connect to MongoDB. Please ensure your MongoDB server is running and accessible.", error);
-    throw new Error("Could not connect to database.");
+    throw new Error("Could not connect to database. Please ensure your MongoDB server is running.");
   }
 }
 
@@ -54,31 +54,26 @@ const mapMongoId = (doc: any) => {
 }
 
 export const getCustomers = async (): Promise<CustomerSummary[]> => {
-    try {
-        const db = await getDb();
-        const customersCollection = db.collection<Customer>('customers');
-        const customers = await customersCollection.find({}).toArray();
+    const db = await getDb();
+    const customersCollection = db.collection<Customer>('customers');
+    const customers = await customersCollection.find({}).toArray();
+    
+    return customers.map((customer: any) => {
+        const { totalDue, totalPaid, balance } = calculateSummary(customer.transactions || []);
+        const { transactions, ...customerWithoutTransactions } = customer;
+        const mappedCustomer = mapMongoId(customerWithoutTransactions);
         
-        return customers.map((customer: any) => {
-            const { totalDue, totalPaid, balance } = calculateSummary(customer.transactions || []);
-            const { transactions, ...customerWithoutTransactions } = customer;
-            const mappedCustomer = mapMongoId(customerWithoutTransactions);
-            
-            return {
-                ...mappedCustomer,
-                name: customer.name,
-                email: customer.email,
-                phone: customer.phone,
-                address: customer.address,
-                totalDue,
-                totalPaid,
-                balance,
-            };
-        });
-    } catch (error) {
-        console.error("Error fetching customers: ", error);
-        return [];
-    }
+        return {
+            ...mappedCustomer,
+            name: customer.name,
+            email: customer.email,
+            phone: customer.phone,
+            address: customer.address,
+            totalDue,
+            totalPaid,
+            balance,
+        };
+    });
 };
 
 
