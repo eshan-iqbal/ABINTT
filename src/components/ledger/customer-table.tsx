@@ -17,6 +17,7 @@ import {
   ArrowUpDown,
   DatabaseZap,
   Edit,
+  MessageCircle,
   MoreVertical,
   PlusCircle,
   Search,
@@ -168,7 +169,11 @@ export function CustomerTable({
                         </TableRow>
                         </TableHeader>
                         <TableBody>
-                        {sortedCustomers.length > 0 ? sortedCustomers.map((customer) => (
+                        {sortedCustomers.length > 0 ? sortedCustomers.map((customer) => {
+                            const whatsAppMessage = encodeURIComponent(`Hello ${customer.name}, here is your latest payment statement from AB INTERIOR. Your current outstanding balance is ${formatCurrency(customer.balance)}. You can view your full statement here: ${process.env.NEXT_PUBLIC_APP_URL || ''}/customers/${customer.id}/statement. Thank you!`);
+                            const whatsappUrl = `https://wa.me/${customer.phone}?text=${whatsAppMessage}`;
+                            
+                            return (
                             <TableRow key={customer.id}>
                             <TableCell className="font-medium">{customer.name}</TableCell>
                             <TableCell>{customer.phone}</TableCell>
@@ -189,6 +194,11 @@ export function CustomerTable({
                                         <View className="mr-2 h-4 w-4" /> View Details
                                     </Link>
                                     </DropdownMenuItem>
+                                    <a href={whatsappUrl} target="_blank" rel="noopener noreferrer" className="block">
+                                        <DropdownMenuItem onSelect={(e) => e.preventDefault()}>
+                                            <MessageCircle className="mr-2 h-4 w-4" /> Send Reminder
+                                        </DropdownMenuItem>
+                                    </a>
                                     <EditCustomerSheet customer={customer as any}>
                                     <DropdownMenuItem onSelect={(e) => e.preventDefault()}>
                                         <Edit className="mr-2 h-4 w-4" /> Edit
@@ -203,7 +213,7 @@ export function CustomerTable({
                                 </DropdownMenu>
                             </TableCell>
                             </TableRow>
-                        )) : (
+                        )}) : (
                             <TableRow>
                                 <TableCell colSpan={4} className="h-24 text-center">
                                     No results found for &quot;{searchQuery}&quot;.
