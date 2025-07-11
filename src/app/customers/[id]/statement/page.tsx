@@ -1,11 +1,9 @@
 import { getCustomerById } from "@/app/actions";
 import { Logo } from "@/components/icons";
-import { PrintStatementButton } from "@/components/ledger/print-statement-button";
+import { ShareStatementButton } from "@/components/ledger/share-statement-button";
 import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow, TableFooter } from "@/components/ui/table";
-import { MessageCircle } from "lucide-react";
 import { notFound } from "next/navigation";
 
 export default async function StatementPage({
@@ -31,7 +29,6 @@ export default async function StatementPage({
       if (isNaN(date.getTime())) {
           return 'Invalid Date';
       }
-      // Use UTC methods to avoid timezone issues during hydration
       return date.toLocaleDateString('en-US', {
           year: 'numeric',
           month: 'long',
@@ -40,12 +37,9 @@ export default async function StatementPage({
       });
   }
 
-  const whatsAppMessage = encodeURIComponent(`Hello ${customer.name}. Here is your full payment statement from AB INTERIOR. You can view it here: ${process.env.NEXT_PUBLIC_APP_URL}/customers/${customer.id}/statement. Your current balance is ${formatCurrency(customer.balance)}. Thank you!`);
-  const whatsappUrl = `https://wa.me/${customer.phone}?text=${whatsAppMessage}`;
-
   return (
     <div className="bg-white text-black min-h-screen p-4 sm:p-8 lg:p-12 font-sans">
-      <div className="max-w-4xl mx-auto border rounded-lg p-8 shadow-lg print:border-none print:shadow-none">
+      <div id="statement-content" className="max-w-4xl mx-auto border rounded-lg p-8 shadow-lg print:border-none print:shadow-none bg-white">
         <header className="flex justify-between items-start mb-8">
             <div>
                 <div className="flex items-center gap-3 mb-2">
@@ -115,15 +109,9 @@ export default async function StatementPage({
           <p>Thank you for your business!</p>
           <p>Generated on {new Date().toLocaleDateString()}</p>
         </footer>
-
       </div>
       <div className="max-w-4xl mx-auto mt-4 flex justify-center gap-4 print:hidden">
-        <PrintStatementButton />
-        <a href={whatsappUrl} target="_blank" rel="noopener noreferrer">
-            <Button variant="secondary">
-                <MessageCircle className="mr-2 h-4 w-4" /> Send via WhatsApp
-            </Button>
-        </a>
+        <ShareStatementButton customer={customer} />
       </div>
     </div>
   );
