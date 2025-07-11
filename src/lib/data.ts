@@ -15,15 +15,20 @@ async function connectToDatabase() {
   if (cachedClient && cachedDb) {
     return { client: cachedClient, db: cachedDb };
   }
+  
+  try {
+    const client = await MongoClient.connect(MONGODB_URI);
 
-  const client = await MongoClient.connect(MONGODB_URI);
+    const db = client.db(DB_NAME);
 
-  const db = client.db(DB_NAME);
+    cachedClient = client;
+    cachedDb = db;
 
-  cachedClient = client;
-  cachedDb = db;
-
-  return { client, db };
+    return { client, db };
+  } catch(error) {
+    console.error("Failed to connect to MongoDB. Please ensure your MongoDB server is running and accessible.", error);
+    throw new Error("Could not connect to database.");
+  }
 }
 
 const getDb = async () => {
@@ -49,49 +54,59 @@ const mapMongoId = (doc: any) => {
 }
 
 export const getCustomers = async (): Promise<CustomerSummary[]> => {
-    const db = await getDb();
-    const customersCollection = db.collection<Customer>('customers');
-    const customers = await customersCollection.find({}).toArray();
-    
-    return customers.map((customer: any) => {
-        const { totalDue, totalPaid, balance } = calculateSummary(customer.transactions || []);
-        const { transactions, ...customerWithoutTransactions } = customer;
-        const mappedCustomer = mapMongoId(customerWithoutTransactions);
+    try {
+        const db = await getDb();
+        const customersCollection = db.collection<Customer>('customers');
+        const customers = await customersCollection.find({}).toArray();
         
-        return {
-            ...mappedCustomer,
-            name: customer.name,
-            email: customer.email,
-            phone: customer.phone,
-            address: customer.address,
-            totalDue,
-            totalPaid,
-            balance,
-        };
-    });
+        return customers.map((customer: any) => {
+            const { totalDue, totalPaid, balance } = calculateSummary(customer.transactions || []);
+            const { transactions, ...customerWithoutTransactions } = customer;
+            const mappedCustomer = mapMongoId(customerWithoutTransactions);
+            
+            return {
+                ...mappedCustomer,
+                name: customer.name,
+                email: customer.email,
+                phone: customer.phone,
+                address: customer.address,
+                totalDue,
+                totalPaid,
+                balance,
+            };
+        });
+    } catch (error) {
+        console.error("Error fetching customers: ", error);
+        return [];
+    }
 };
 
 
 export const getCustomerById = async (id: string): Promise<CustomerWithSummary | null> => {
-    if (!ObjectId.isValid(id)) {
+    try {
+        if (!ObjectId.isValid(id)) {
+            return null;
+        }
+        const db = await getDb();
+        const customersCollection = db.collection('customers');
+        const customer = await customersCollection.findOne({ _id: new ObjectId(id) });
+        
+        if (!customer) return null;
+
+        const { totalDue, totalPaid, balance } = calculateSummary(customer.transactions || []);
+        const mappedCustomer = mapMongoId(customer);
+
+        return {
+            ...mappedCustomer,
+            transactions: (customer.transactions || []).map((t: any) => ({...t, id: new ObjectId().toHexString()})), // add temp id for keys
+            totalDue,
+            totalPaid,
+            balance,
+        };
+    } catch(error) {
+        console.error(`Error fetching customer by id ${id}: `, error);
         return null;
     }
-    const db = await getDb();
-    const customersCollection = db.collection('customers');
-    const customer = await customersCollection.findOne({ _id: new ObjectId(id) });
-    
-    if (!customer) return null;
-
-    const { totalDue, totalPaid, balance } = calculateSummary(customer.transactions || []);
-    const mappedCustomer = mapMongoId(customer);
-
-    return {
-        ...mappedCustomer,
-        transactions: (customer.transactions || []).map((t: any) => ({...t, id: new ObjectId().toHexString()})), // add temp id for keys
-        totalDue,
-        totalPaid,
-        balance,
-    };
 };
 
 export const formatTransactionsForAI = (transactions: Transaction[]): string => {
