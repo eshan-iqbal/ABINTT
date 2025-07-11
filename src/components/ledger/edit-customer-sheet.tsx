@@ -28,10 +28,10 @@ import { updateCustomer } from "@/app/actions";
 import { useToast } from "@/hooks/use-toast";
 import { useState, useTransition } from "react";
 import { customerSchema } from "@/lib/schemas";
-import type { CustomerWithSummary } from "@/lib/types";
+import type { CustomerWithSummary, CustomerSummary } from "@/lib/types";
 import { Edit } from "lucide-react";
 
-export function EditCustomerSheet({ customer }: { customer: CustomerWithSummary }) {
+export function EditCustomerSheet({ customer, children }: { customer: CustomerWithSummary | CustomerSummary, children?: React.ReactNode }) {
     const [open, setOpen] = useState(false);
     const [isPending, startTransition] = useTransition();
     const { toast } = useToast();
@@ -45,6 +45,17 @@ export function EditCustomerSheet({ customer }: { customer: CustomerWithSummary 
             address: customer.address,
         },
     });
+
+    React.useEffect(() => {
+        if (open) {
+            form.reset({
+                name: customer.name,
+                email: customer.email,
+                phone: customer.phone,
+                address: customer.address,
+            });
+        }
+    }, [open, customer, form]);
 
     function onSubmit(values: z.infer<typeof customerSchema>) {
         startTransition(async () => {
@@ -68,9 +79,11 @@ export function EditCustomerSheet({ customer }: { customer: CustomerWithSummary 
     return (
         <Sheet open={open} onOpenChange={setOpen}>
             <SheetTrigger asChild>
-                <Button variant="outline">
-                    <Edit className="mr-2 h-4 w-4" /> Edit Customer
-                </Button>
+                {children || (
+                    <Button variant="outline">
+                        <Edit className="mr-2 h-4 w-4" /> Edit Customer
+                    </Button>
+                )}
             </SheetTrigger>
             <SheetContent className="overflow-y-auto">
                 <SheetHeader>
