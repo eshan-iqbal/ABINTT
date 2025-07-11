@@ -119,7 +119,7 @@ export const addCustomer = async (data: z.infer<typeof addCustomerSchema>) => {
     const transactions = [];
     if (data.initialTransaction && data.initialTransaction.amount > 0) {
         transactions.push({
-            id: new ObjectId(),
+            id: new ObjectId().toHexString(),
             date: new Date().toISOString(),
             amount: data.initialTransaction.amount,
             type: 'DEBIT',
@@ -147,7 +147,7 @@ export const addPayment = async (data: z.infer<typeof paymentSchema>) => {
     const customersCollection = db.collection('customers');
 
     const paymentData = {
-        id: new ObjectId(),
+        id: new ObjectId().toHexString(),
         date: data.date.toISOString(),
         amount: data.amount,
         type: data.type,
@@ -193,14 +193,14 @@ export const updateCustomer = async (customerId: string, data: z.infer<typeof cu
 };
 
 export const updateTransaction = async (customerId: string, transactionId: string, data: z.infer<typeof paymentSchema>) => {
-    if (!ObjectId.isValid(customerId) || !ObjectId.isValid(transactionId)) {
+    if (!ObjectId.isValid(customerId)) {
         throw new Error("Invalid ID");
     }
     const db = await getDb();
     const customersCollection = db.collection('customers');
 
     await customersCollection.updateOne(
-        { _id: new ObjectId(customerId), "transactions.id": new ObjectId(transactionId) },
+        { _id: new ObjectId(customerId), "transactions.id": transactionId },
         {
             $set: {
                 "transactions.$.date": data.date.toISOString(),
@@ -214,7 +214,7 @@ export const updateTransaction = async (customerId: string, transactionId: strin
 }
 
 export const deleteTransaction = async (customerId: string, transactionId: string) => {
-    if (!ObjectId.isValid(customerId) || !ObjectId.isValid(transactionId)) {
+    if (!ObjectId.isValid(customerId)) {
         throw new Error("Invalid ID");
     }
     const db = await getDb();
@@ -222,7 +222,7 @@ export const deleteTransaction = async (customerId: string, transactionId: strin
 
     await customersCollection.updateOne(
         { _id: new ObjectId(customerId) },
-        { $pull: { transactions: { id: new ObjectId(transactionId) } } }
+        { $pull: { transactions: { id: transactionId } } }
     );
 }
 
