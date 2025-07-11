@@ -41,7 +41,6 @@ export function AddCustomerSheet({ children }: { children: React.ReactNode }) {
         resolver: zodResolver(addCustomerSchema),
         defaultValues: {
             name: "",
-            email: "",
             phone: "",
             address: "",
             initialTransaction: {
@@ -92,19 +91,6 @@ export function AddCustomerSheet({ children }: { children: React.ReactNode }) {
                                     <FormLabel>Full Name</FormLabel>
                                     <FormControl>
                                         <Input placeholder="John Doe" {...field} />
-                                    </FormControl>
-                                    <FormMessage />
-                                </FormItem>
-                            )}
-                        />
-                        <FormField
-                            control={form.control}
-                            name="email"
-                            render={({ field }) => (
-                                <FormItem>
-                                    <FormLabel>Email Address</FormLabel>
-                                    <FormControl>
-                                        <Input placeholder="john.doe@example.com" {...field} />
                                     </FormControl>
                                     <FormMessage />
                                 </FormItem>
