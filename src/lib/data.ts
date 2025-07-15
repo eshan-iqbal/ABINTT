@@ -146,13 +146,13 @@ export const addCustomer = async (data: z.infer<typeof addCustomerSchema>) => {
             amount: data.initialTransaction.amount,
             type: 'DEBIT',
             mode: data.initialTransaction.mode,
+            billNumber: data.initialTransaction.billNumber || "",
             notes: data.initialTransaction.notes || "Initial bill",
         });
     }
 
     const customerData = {
         name: data.name,
-        email: data.email,
         phone: data.phone,
         address: data.address,
         transactions: transactions,
@@ -175,6 +175,7 @@ export const addPayment = async (data: z.infer<typeof paymentSchema>) => {
         amount: data.amount,
         type: data.type,
         mode: data.mode,
+        billNumber: data.billNumber,
         notes: data.notes,
     };
 
@@ -210,7 +211,6 @@ export const updateCustomer = async (customerId: string, data: z.infer<typeof cu
         { _id: new ObjectId(customerId) },
         { $set: {
             name: data.name,
-            email: data.email,
             phone: data.phone,
             address: data.address,
         } }
@@ -233,6 +233,7 @@ export const updateTransaction = async (customerId: string, transactionId: strin
                 "transactions.$.amount": data.amount,
                 "transactions.$.type": data.type,
                 "transactions.$.mode": data.mode,
+                "transactions.$.billNumber": data.billNumber,
                 "transactions.$.notes": data.notes,
             }
         }

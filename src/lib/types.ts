@@ -5,13 +5,13 @@ export type Transaction = {
   amount: number;
   type: 'DEBIT' | 'CREDIT';
   mode: 'CASH' | 'UPI' | 'CARD' | 'OTHER';
+  billNumber?: string;
   notes: string;
 };
 
 export type Customer = {
   id: string; // This will be the MongoDB ObjectId as a string
   name: string;
-  email: string;
   phone: string;
   address: string;
   transactions: Transaction[];

@@ -49,6 +49,7 @@ export function AddPaymentSheet({ customerId, children }: { customerId: string, 
             amount: 0,
             type: "CREDIT",
             mode: "UPI",
+            billNumber: "",
             notes: "",
             date: new Date(),
         },
@@ -73,6 +74,7 @@ export function AddPaymentSheet({ customerId, children }: { customerId: string, 
                     amount: 0,
                     type: "CREDIT",
                     mode: "UPI",
+                    billNumber: "",
                     notes: "",
                     date: new Date(),
                 });
@@ -128,6 +130,20 @@ export function AddPaymentSheet({ customerId, children }: { customerId: string, 
                             )}
                         />
 
+                        <FormField
+                            control={form.control}
+                            name="billNumber"
+                            render={({ field }) => (
+                                <FormItem>
+                                    <FormLabel>Bill Number</FormLabel>
+                                    <FormControl>
+                                        <Input placeholder="Enter bill number (optional)" {...field} />
+                                    </FormControl>
+                                    <FormMessage />
+                                </FormItem>
+                            )}
+                        />
+                        
                         <FormField
                             control={form.control}
                             name="amount"

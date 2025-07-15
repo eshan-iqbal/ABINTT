@@ -120,6 +120,7 @@ export function PaymentHistoryTable({
             <SortableHeader columnKey="type">Type</SortableHeader>
             <SortableHeader columnKey="amount">Amount</SortableHeader>
             <SortableHeader columnKey="mode">Mode</SortableHeader>
+            <TableHead>Bill Number</TableHead>
             <TableHead>Notes</TableHead>
             <TableHead className="text-right w-[60px]">Actions</TableHead>
           </TableRow>
@@ -150,6 +151,7 @@ export function PaymentHistoryTable({
                 {formatCurrency(transaction.amount)}
               </TableCell>
               <TableCell>{transaction.mode}</TableCell>
+              <TableCell>{transaction.billNumber || "-"}</TableCell>
               <TableCell className="max-w-[200px] truncate">
                 {transaction.notes}
               </TableCell>
@@ -178,7 +180,7 @@ export function PaymentHistoryTable({
             </TableRow>
           )) : (
              <TableRow>
-                <TableCell colSpan={6} className="h-24 text-center">
+                <TableCell colSpan={7} className="h-24 text-center">
                     No transactions found.
                 </TableCell>
             </TableRow>

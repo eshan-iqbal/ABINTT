@@ -50,6 +50,7 @@ export function EditTransactionSheet({ customerId, transaction, children }: { cu
             amount: transaction.amount,
             type: transaction.type,
             mode: transaction.mode,
+            billNumber: transaction.billNumber || "",
             notes: transaction.notes,
             date: new Date(transaction.date),
         },
@@ -62,6 +63,7 @@ export function EditTransactionSheet({ customerId, transaction, children }: { cu
                 amount: transaction.amount,
                 type: transaction.type,
                 mode: transaction.mode,
+                billNumber: transaction.billNumber || "",
                 notes: transaction.notes,
                 date: new Date(transaction.date),
             });
@@ -134,6 +136,20 @@ export function EditTransactionSheet({ customerId, transaction, children }: { cu
                             )}
                         />
 
+                        <FormField
+                            control={form.control}
+                            name="billNumber"
+                            render={({ field }) => (
+                                <FormItem>
+                                    <FormLabel>Bill Number</FormLabel>
+                                    <FormControl>
+                                        <Input placeholder="Enter bill number (optional)" {...field} />
+                                    </FormControl>
+                                    <FormMessage />
+                                </FormItem>
+                            )}
+                        />
+                        
                         <FormField
                             control={form.control}
                             name="amount"

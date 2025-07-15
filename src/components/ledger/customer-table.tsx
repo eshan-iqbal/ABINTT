@@ -165,7 +165,6 @@ export function CustomerTable({
                         <TableRow>
                             <SortableHeader columnKey="name">Name</SortableHeader>
                             <SortableHeader columnKey="phone">Phone</SortableHeader>
-                            <TableHead>Email</TableHead>
                             <TableHead>Address</TableHead>
                             <TableHead>Reg Date</TableHead>
                             <SortableHeader columnKey="balance" className="text-right">Balance</SortableHeader>
@@ -181,15 +180,14 @@ export function CustomerTable({
                             
                             return (
                             <TableRow key={customer.id}>
-                            <TableCell className="font-medium">{customer.name}</TableCell>
-                            <TableCell>{customer.phone}</TableCell>
-                            <TableCell>{customer.email}</TableCell>
-                            <TableCell>{customer.address}</TableCell>
-                            <TableCell>-</TableCell> {/* Registration date placeholder */}
-                            <TableCell className={`text-right font-medium text-blue-500`}>
-                                {formatCurrency(customer.balance)}
-                            </TableCell>
-                            <TableCell className="text-right">
+                                <TableCell className="font-medium">{customer.name}</TableCell>
+                                <TableCell>{customer.phone}</TableCell>
+                                <TableCell>{customer.address}</TableCell>
+                                <TableCell>-</TableCell>
+                                <TableCell className={`text-right font-medium text-blue-500`}>
+                                    {formatCurrency(customer.balance)}
+                                </TableCell>
+                                <TableCell className="text-right">
                                 <div className="flex items-center justify-end gap-2">
                                 <Link href={`/customers/${customer.id}`}>
                                     <Button variant="outline" size="sm">
@@ -228,7 +226,7 @@ export function CustomerTable({
                                 </DropdownMenuContent>
                                 </DropdownMenu>
                                 </div>
-                            </TableCell>
+                                </TableCell>
                             </TableRow>
                         )}) : (
                             <TableRow>

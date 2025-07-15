@@ -44,6 +44,7 @@ export function AddCustomerSheet({ children }: { children: React.ReactNode }) {
             phone: "",
             address: "",
             initialTransaction: {
+                billNumber: "",
                 amount: 0,
                 mode: "OTHER",
                 notes: "",
@@ -74,15 +75,15 @@ export function AddCustomerSheet({ children }: { children: React.ReactNode }) {
     return (
         <Sheet open={open} onOpenChange={setOpen}>
             <SheetTrigger asChild>{children}</SheetTrigger>
-            <SheetContent className="overflow-y-auto">
-                <SheetHeader>
+            <SheetContent className="overflow-y-auto max-w-md mx-auto">
+                <SheetHeader className="text-center">
                     <SheetTitle>Add a New Customer</SheetTitle>
                     <SheetDescription>
                         Fill in the details below to add a new customer to your ledger.
                     </SheetDescription>
                 </SheetHeader>
                 <Form {...form}>
-                    <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6 mt-6">
+                    <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6 mt-6 mx-auto max-w-sm">
                         <FormField
                             control={form.control}
                             name="name"
@@ -96,6 +97,7 @@ export function AddCustomerSheet({ children }: { children: React.ReactNode }) {
                                 </FormItem>
                             )}
                         />
+
                          <FormField
                             control={form.control}
                             name="phone"
@@ -144,6 +146,20 @@ export function AddCustomerSheet({ children }: { children: React.ReactNode }) {
                         
                         <FormField
                             control={form.control}
+                            name="initialTransaction.billNumber"
+                            render={({ field }) => (
+                                <FormItem>
+                                    <FormLabel>Bill Number</FormLabel>
+                                    <FormControl>
+                                        <Input placeholder="INV-001" {...field} />
+                                    </FormControl>
+                                    <FormMessage />
+                                </FormItem>
+                            )}
+                        />
+                        
+                        <FormField
+                            control={form.control}
                             name="initialTransaction.amount"
                             render={({ field }) => (
                                 <FormItem>
@@ -171,7 +187,7 @@ export function AddCustomerSheet({ children }: { children: React.ReactNode }) {
                         />
 
 
-                        <SheetFooter className="mt-8 pt-8 sticky bottom-0 bg-background py-4">
+                        <SheetFooter className="mt-8 pt-8 sticky bottom-0 bg-background py-4 flex justify-center gap-4">
                             <SheetClose asChild>
                                 <Button type="button" variant="ghost">Cancel</Button>
                             </SheetClose>
