@@ -24,6 +24,7 @@ import {
   Search,
   Trash2,
   View,
+  Copy,
 } from "lucide-react";
 import Link from "next/link";
 import { Button } from "../ui/button";
@@ -33,6 +34,8 @@ import { DeleteCustomerDialog } from "./delete-customer-dialog";
 import { PageHeader } from "../page-header";
 import { AddCustomerSheet } from "./add-customer-sheet";
 import { Input } from "../ui/input";
+import { BulkWhatsAppButton } from "./bulk-whatsapp-button";
+import { useToast } from '@/hooks/use-toast';
 
 type SortKey = keyof CustomerSummary | 'balance';
 
@@ -45,6 +48,7 @@ export function CustomerTable({
   const [sortKey, setSortKey] = React.useState<SortKey>("name");
   const [sortOrder, setSortOrder] = React.useState<"asc" | "desc">("asc");
   const [isClient, setIsClient] = React.useState(false);
+  const { toast } = useToast();
 
   React.useEffect(() => {
     setIsClient(true);
@@ -79,6 +83,23 @@ export function CustomerTable({
     } else {
       setSortKey(key);
       setSortOrder("asc");
+    }
+  };
+
+  const handleCopyReminder = async (customer: CustomerSummary, statementUrl: string) => {
+    const reminderMessage = `Hello ${customer.name}, here is your latest payment statement from AB INTERIOR. Your current outstanding balance is ${formatCurrency(customer.balance)}. You can view your full statement here: ${statementUrl}. Thank you!`;
+    try {
+      await navigator.clipboard.writeText(reminderMessage);
+      toast({
+        title: "Message Copied",
+        description: `Reminder message for ${customer.name} has been copied to your clipboard.`,
+      });
+    } catch (error) {
+      toast({
+        title: "Copy Failed",
+        description: "Could not copy the reminder message.",
+        variant: "destructive",
+      });
     }
   };
 
@@ -149,11 +170,14 @@ export function CustomerTable({
                         className="pl-10 w-64"
                     />
                 </div>
-                <AddCustomerSheet>
-                <Button>
-                    <PlusCircle className="mr-2 h-4 w-4" /> Add Customer
-                </Button>
-                </AddCustomerSheet>
+                <div className="flex gap-2">
+                    <BulkWhatsAppButton customers={customers} />
+                    <AddCustomerSheet>
+                    <Button>
+                        <PlusCircle className="mr-2 h-4 w-4" /> Add Customer
+                    </Button>
+                    </AddCustomerSheet>
+                </div>
             </div>
         </PageHeader>
         <main className="flex-1 overflow-y-auto p-4 sm:p-6 md:p-8">
@@ -175,8 +199,7 @@ export function CustomerTable({
                         {sortedCustomers.length > 0 ? sortedCustomers.map((customer) => {
                             const appUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:9002';
                             const statementUrl = `${appUrl}/customers/${customer.id}/statement`;
-                            const whatsAppMessage = encodeURIComponent(`Hi ${customer.name}, this is a reminder from AB INTERIOR. Your current balance is ${formatCurrency(customer.balance)}. For details, view your statement: ${statementUrl}. If you have any questions, feel free to contact us!`);
-                            const whatsappUrl = `https://wa.me/${customer.phone}?text=${whatsAppMessage}`;
+                            const reminderMessage = `Hello ${customer.name}, here is your latest payment statement from AB INTERIOR. Your current outstanding balance is ${formatCurrency(customer.balance)}. You can view your full statement here: ${statementUrl}. Thank you!`;
                             
                             return (
                             <TableRow key={customer.id}>
@@ -207,11 +230,37 @@ export function CustomerTable({
                                           <FileText className="mr-2 h-4 w-4" /> View Statement
                                       </Link>
                                     </DropdownMenuItem>
-                                    <a href={whatsappUrl} target="_blank" rel="noopener noreferrer" className="block">
-                                        <DropdownMenuItem onSelect={(e) => e.preventDefault()}>
-                                            <MessageCircle className="mr-2 h-4 w-4" /> Send Reminder
-                                        </DropdownMenuItem>
-                                    </a>
+                                    <DropdownMenuItem onClick={async () => {
+                                        try {
+                                          await navigator.clipboard.writeText(reminderMessage);
+                                          toast({
+                                            title: "Message Copied",
+                                            description: `Reminder message for ${customer.name} has been copied to your clipboard.`,
+                                          });
+                                        } catch (error) {
+                                          toast({
+                                            title: "Copy Failed",
+                                            description: "Could not copy the reminder message.",
+                                            variant: "destructive",
+                                          });
+                                        }
+                                        // Format phone number for WhatsApp (no +, no spaces, no dashes, add country code if missing)
+                                        let phoneNumber = customer.phone;
+                                        if (!phoneNumber.startsWith('+') && !phoneNumber.startsWith('91')) {
+                                          phoneNumber = phoneNumber.replace(/^0+/, '');
+                                          phoneNumber = '91' + phoneNumber;
+                                        } else if (phoneNumber.startsWith('+')) {
+                                          phoneNumber = phoneNumber.substring(1);
+                                        }
+                                        const encodedMessage = encodeURIComponent(reminderMessage);
+                                        const whatsappUrl = `https://wa.me/${phoneNumber}?text=${encodedMessage}`;
+                                        window.open(whatsappUrl, '_blank');
+                                      }}>
+                                        <MessageCircle className="mr-2 h-4 w-4" /> Send Reminder
+                                    </DropdownMenuItem>
+                                    <DropdownMenuItem onClick={() => handleCopyReminder(customer, statementUrl)}>
+                                        <Copy className="mr-2 h-4 w-4" /> Copy Reminder Message
+                                    </DropdownMenuItem>
                                     <DropdownMenuSeparator />
                                     <EditCustomerSheet customer={customer as any}>
                                       <DropdownMenuItem onSelect={(e) => e.preventDefault()}>
@@ -244,11 +293,16 @@ export function CustomerTable({
                 <p className="text-muted-foreground mt-2">
                     Get started by adding your first customer.
                 </p>
-                <AddCustomerSheet>
-                    <Button className="mt-4">
-                        <PlusCircle className="mr-2 h-4 w-4" /> Add Customer
+                <div className="flex gap-2 mt-4">
+                    <Button disabled variant="outline">
+                        <MessageCircle className="mr-2 h-4 w-4" /> Send Bulk WhatsApp
                     </Button>
-                </AddCustomerSheet>
+                    <AddCustomerSheet>
+                        <Button>
+                            <PlusCircle className="mr-2 h-4 w-4" /> Add Customer
+                        </Button>
+                    </AddCustomerSheet>
+                </div>
                 </div>
             )}
             </div>

@@ -4,6 +4,7 @@ import Link from "next/link";
 import {
   Settings,
   Users,
+  BarChart,
 } from "lucide-react";
 import {
   SidebarProvider,
@@ -26,6 +27,7 @@ export function AppShell({
 
   const menuItems = [
     { href: "/customers", label: "Customers", icon: Users },
+    { href: "/analytics", label: "Analytics", icon: BarChart },
   ];
 
   return (
