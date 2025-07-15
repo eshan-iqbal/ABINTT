@@ -36,6 +36,7 @@ import { AddCustomerSheet } from "./add-customer-sheet";
 import { Input } from "../ui/input";
 import { BulkWhatsAppButton } from "./bulk-whatsapp-button";
 import { useToast } from '@/hooks/use-toast';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "../ui/dialog";
 
 type SortKey = keyof CustomerSummary | 'balance';
 
@@ -49,10 +50,34 @@ export function CustomerTable({
   const [sortOrder, setSortOrder] = React.useState<"asc" | "desc">("asc");
   const [isClient, setIsClient] = React.useState(false);
   const { toast } = useToast();
+  const [reminderDialogOpen, setReminderDialogOpen] = React.useState(false);
+  const [reminderDialogMessage, setReminderDialogMessage] = React.useState("");
+  const [reminderDialogUrl, setReminderDialogUrl] = React.useState("");
+
 
   React.useEffect(() => {
     setIsClient(true);
   }, []);
+
+  React.useEffect(() => {
+    if (reminderDialogOpen && reminderDialogMessage) {
+      (async () => {
+        const success = await copyToClipboard(reminderDialogMessage);
+        if (success) {
+          toast({
+            title: "Message Copied",
+            description: "Reminder message has been copied to your clipboard.",
+          });
+        } else {
+          toast({
+            title: "Copy Failed",
+            description: "Could not copy the reminder message.",
+            variant: "destructive",
+          });
+        }
+      })();
+    }
+  }, [reminderDialogOpen, reminderDialogMessage]);
 
   const filteredCustomers = React.useMemo(() => {
     if (!customers) return [];
@@ -100,6 +125,32 @@ export function CustomerTable({
         description: "Could not copy the reminder message.",
         variant: "destructive",
       });
+    }
+  };
+
+  // Robust clipboard copy function
+  const copyToClipboard = async (text: string) => {
+    if (navigator.clipboard && window.isSecureContext) {
+      try {
+        await navigator.clipboard.writeText(text);
+        return true;
+      } catch {
+        // fallback below
+      }
+    }
+    try {
+      const textarea = document.createElement("textarea");
+      textarea.value = text;
+      textarea.style.position = "fixed";
+      textarea.style.opacity = "0";
+      document.body.appendChild(textarea);
+      textarea.focus();
+      textarea.select();
+      const success = document.execCommand("copy");
+      document.body.removeChild(textarea);
+      return success;
+    } catch {
+      return false;
     }
   };
 
@@ -217,6 +268,31 @@ export function CustomerTable({
                                         <View className="mr-2 h-4 w-4" /> View
                                     </Button>
                                 </Link>
+                                <Button
+                                  variant="outline"
+                                  size="icon"
+                                  title="Copy Message"
+                                  onClick={async () => {
+                                    const statementUrl = `${appUrl}/customers/${customer.id}/statement`;
+                                    const reminderMessage = `Hello ${customer.name}, here is your latest payment statement from AB INTERIOR. Your current outstanding balance is ${formatCurrency(customer.balance)}. You can view your full statement here: ${statementUrl}. Thank you!`;
+                                    const success = await copyToClipboard(reminderMessage);
+                                    if (success) {
+                                      toast({
+                                        title: "Message Copied",
+                                        description: `Reminder message for ${customer.name} has been copied to your clipboard.`,
+                                      });
+                                    } else {
+                                      toast({
+                                        title: "Copy Failed",
+                                        description: "Could not copy the reminder message.",
+                                        variant: "destructive",
+                                      });
+                                    }
+                                  }}
+                                >
+                                  <Copy className="h-4 w-4" />
+                                  <span className="sr-only">Copy Message</span>
+                                </Button>
                                 <DropdownMenu>
                                 <DropdownMenuTrigger asChild>
                                     <Button variant="ghost" size="icon">
@@ -230,34 +306,26 @@ export function CustomerTable({
                                           <FileText className="mr-2 h-4 w-4" /> View Statement
                                       </Link>
                                     </DropdownMenuItem>
-                                    <DropdownMenuItem onClick={async () => {
-                                        try {
-                                          await navigator.clipboard.writeText(reminderMessage);
-                                          toast({
-                                            title: "Message Copied",
-                                            description: `Reminder message for ${customer.name} has been copied to your clipboard.`,
-                                          });
-                                        } catch (error) {
-                                          toast({
-                                            title: "Copy Failed",
-                                            description: "Could not copy the reminder message.",
-                                            variant: "destructive",
-                                          });
-                                        }
-                                        // Format phone number for WhatsApp (no +, no spaces, no dashes, add country code if missing)
-                                        let phoneNumber = customer.phone;
-                                        if (!phoneNumber.startsWith('+') && !phoneNumber.startsWith('91')) {
-                                          phoneNumber = phoneNumber.replace(/^0+/, '');
-                                          phoneNumber = '91' + phoneNumber;
-                                        } else if (phoneNumber.startsWith('+')) {
-                                          phoneNumber = phoneNumber.substring(1);
-                                        }
-                                        const encodedMessage = encodeURIComponent(reminderMessage);
-                                        const whatsappUrl = `https://wa.me/${phoneNumber}?text=${encodedMessage}`;
-                                        window.open(whatsappUrl, '_blank');
-                                      }}>
-                                        <MessageCircle className="mr-2 h-4 w-4" /> Send Reminder
-                                    </DropdownMenuItem>
+                                    <DropdownMenuItem
+  onClick={() => {
+    const statementUrl = `${appUrl}/customers/${customer.id}/statement`;
+    const reminderMessage = `Hello ${customer.name}, here is your latest payment statement from AB INTERIOR. Your current outstanding balance is ${formatCurrency(customer.balance)}. You can view your full statement here: ${statementUrl}. Thank you!`;
+    let phoneNumber = customer.phone;
+    if (!phoneNumber.startsWith('+') && !phoneNumber.startsWith('91')) {
+      phoneNumber = phoneNumber.replace(/^0+/, '');
+      phoneNumber = '91' + phoneNumber;
+    } else if (phoneNumber.startsWith('+')) {
+      phoneNumber = phoneNumber.substring(1);
+    }
+    const encodedMessage = encodeURIComponent(reminderMessage);
+    const whatsappUrl = `https://wa.me/${phoneNumber}?text=${encodedMessage}`;
+    setReminderDialogMessage(reminderMessage);
+    setReminderDialogUrl(whatsappUrl);
+    setReminderDialogOpen(true);
+  }}
+>
+  <MessageCircle className="mr-2 h-4 w-4" /> Send Reminder
+</DropdownMenuItem>
                                     <DropdownMenuItem onClick={() => handleCopyReminder(customer, statementUrl)}>
                                         <Copy className="mr-2 h-4 w-4" /> Copy Reminder Message
                                     </DropdownMenuItem>
@@ -307,6 +375,65 @@ export function CustomerTable({
             )}
             </div>
       </main>
+      <Dialog open={reminderDialogOpen} onOpenChange={setReminderDialogOpen}>
+    <DialogContent>
+      <DialogHeader>
+        <DialogTitle>Copy & Send WhatsApp Reminder</DialogTitle>
+      </DialogHeader>
+      <div className="mb-4">
+        <div className="font-medium mb-2">Message:</div>
+        <div className="p-2 border rounded bg-muted/50 whitespace-pre-line text-sm">{reminderDialogMessage}</div>
+      </div>
+      <DialogFooter>
+        <Button
+          variant="secondary"
+          onClick={async () => {
+            const success = await copyToClipboard(reminderDialogMessage);
+            if (success) {
+              toast({
+                title: "Message Copied",
+                description: "Reminder message has been copied to your clipboard.",
+              });
+            } else {
+              toast({
+                title: "Copy Failed",
+                description: "Could not copy the reminder message.",
+                variant: "destructive",
+              });
+            }
+          }}
+        >
+          Copy Only
+        </Button>
+        <Button
+          onClick={async () => {
+            const success = await copyToClipboard(reminderDialogMessage);
+            if (success) {
+              toast({
+                title: "Message Copied",
+                description: "Reminder message has been copied to your clipboard.",
+              });
+            } else {
+              toast({
+                title: "Copy Failed",
+                description: "Could not copy the reminder message.",
+                variant: "destructive",
+              });
+            }
+            setTimeout(() => {
+              window.open(reminderDialogUrl, '_blank');
+              setReminderDialogOpen(false);
+            }, 200);
+          }}
+        >
+          Copy & Go to WhatsApp
+        </Button>
+        <Button variant="outline" onClick={() => setReminderDialogOpen(false)}>
+          Cancel
+        </Button>
+      </DialogFooter>
+    </DialogContent>
+  </Dialog>
     </div>
   );
 }
