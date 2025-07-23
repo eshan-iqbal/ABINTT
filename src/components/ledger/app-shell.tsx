@@ -62,6 +62,15 @@ export function AppShell({
       <main className="flex min-h-svh flex-1 flex-col bg-background">
         {children}
       </main>
+      {/* Mobile bottom navbar */}
+      <nav className="sm:hidden fixed bottom-0 left-0 right-0 z-50 bg-white border-t border-gray-200 flex justify-around items-center h-14">
+        {menuItems.map((item) => (
+          <Link key={item.href} href={item.href} className={"flex flex-col items-center justify-center flex-1 " + (pathname.startsWith(item.href) ? "text-primary" : "text-gray-500") }>
+            <item.icon className="w-6 h-6 mb-1" />
+            <span className="text-xs font-medium">{item.label}</span>
+          </Link>
+        ))}
+      </nav>
     </SidebarProvider>
   );
 }
