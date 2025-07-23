@@ -1,5 +1,5 @@
 import { MongoClient, ObjectId } from 'mongodb';
-import type { Customer, CustomerSummary, CustomerWithSummary, Transaction } from './types';
+import type { Customer, CustomerSummary, CustomerWithSummary, Transaction, Labour, LabourPayment } from './types';
 import { z } from 'zod';
 import { addCustomerSchema, customerSchema, paymentSchema } from './schemas';
 
@@ -261,4 +261,54 @@ export const formatTransactionsForAI = (transactions: Transaction[]): string => 
       `On ${new Date(t.date).toLocaleDateString()}, an amount of ${t.amount} was ${t.type === 'CREDIT' ? 'paid' : 'billed'} via ${t.mode}. Notes: ${t.notes || 'N/A'}`
     )
     .join('\n');
+};
+
+export const getLabours = async (): Promise<Labour[]> => {
+  const db = await getDb();
+  if (!db) return [];
+  const laboursCollection = db.collection('labours');
+  const labours = await laboursCollection.find({}).toArray();
+  return labours.map((labour: any) => ({
+    ...mapMongoId(labour),
+    payments: (labour.payments || []).map((p: any) => ({ ...p, id: p.id || new ObjectId().toHexString() }))
+  }));
+};
+
+export const addLabour = async (data: { name: string; phone: string; }): Promise<void> => {
+  const db = await getDb();
+  if (!db) throw new Error('Database not connected.');
+  const laboursCollection = db.collection('labours');
+  await laboursCollection.insertOne({
+    name: data.name,
+    phone: data.phone,
+    payments: [],
+    createdAt: new Date(),
+  });
+};
+
+export const addLabourPayment = async (labourId: string, payment: { date: string; amount: number; }): Promise<void> => {
+  const db = await getDb();
+  if (!db) throw new Error('Database not connected.');
+  const laboursCollection = db.collection('labours');
+  await laboursCollection.updateOne(
+    { _id: new ObjectId(labourId) },
+    { $push: { payments: { id: new ObjectId().toHexString(), ...payment } } }
+  );
+};
+
+export const deleteLabourPayment = async (labourId: string, paymentId: string): Promise<void> => {
+  const db = await getDb();
+  if (!db) throw new Error('Database not connected.');
+  const laboursCollection = db.collection('labours');
+  await laboursCollection.updateOne(
+    { _id: new ObjectId(labourId) },
+    { $pull: { payments: { id: paymentId } } }
+  );
+};
+
+export const deleteLabour = async (labourId: string): Promise<void> => {
+  const db = await getDb();
+  if (!db) throw new Error('Database not connected.');
+  const laboursCollection = db.collection('labours');
+  await laboursCollection.deleteOne({ _id: new ObjectId(labourId) });
 };

@@ -4,9 +4,9 @@
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
 import { summarizeTransactions } from "@/ai/flows/summarize-transactions";
-import { getCustomers as getCustomersData, getCustomerById as getCustomerData, formatTransactionsForAI, addCustomer as addCustomerData, addPayment as addPaymentData, deleteCustomer as deleteCustomerData, updateCustomer as updateCustomerData, updateTransaction as updateTransactionData, deleteTransaction as deleteTransactionData } from "@/lib/data";
+import { getCustomers as getCustomersData, getCustomerById as getCustomerData, formatTransactionsForAI, addCustomer as addCustomerData, addPayment as addPaymentData, deleteCustomer as deleteCustomerData, updateCustomer as updateCustomerData, updateTransaction as updateTransactionData, deleteTransaction as deleteTransactionData, getLabours as getLaboursData, addLabour as addLabourData, addLabourPayment as addLabourPaymentData, deleteLabourPayment as deleteLabourPaymentData, deleteLabour as deleteLabourData } from "@/lib/data";
 import type { SummarizeTransactionsInput } from '@/ai/flows/summarize-transactions';
-import { addCustomerSchema, paymentSchema, customerSchema } from "@/lib/schemas";
+import { addCustomerSchema, paymentSchema, customerSchema, labourSchema, labourPaymentSchema } from "@/lib/schemas";
 import type { Transaction } from "@/lib/types";
 
 export const getCustomers = async () => {
@@ -162,4 +162,61 @@ export const deleteTransaction = async (customerId: string, transactionId: strin
             errors: { _form: ["An unexpected error occurred."] },
         };
     }
+};
+
+export const getLabours = async () => {
+  const labours = await getLaboursData();
+  return JSON.parse(JSON.stringify(labours));
+};
+
+export const addLabour = async (data: z.infer<typeof labourSchema>) => {
+  const validatedFields = labourSchema.safeParse(data);
+  if (!validatedFields.success) {
+    return { errors: validatedFields.error.flatten().fieldErrors };
+  }
+  try {
+    await addLabourData(validatedFields.data);
+    revalidatePath('/labour');
+    return { success: true };
+  } catch (e) {
+    console.error(e);
+    return { errors: { _form: ['An unexpected error occurred.'] } };
+  }
+};
+
+export const addLabourPayment = async (labourId: string, data: z.infer<typeof labourPaymentSchema>) => {
+  const validatedFields = labourPaymentSchema.safeParse(data);
+  if (!validatedFields.success) {
+    return { errors: validatedFields.error.flatten().fieldErrors };
+  }
+  try {
+    await addLabourPaymentData(labourId, validatedFields.data);
+    revalidatePath('/labour');
+    return { success: true };
+  } catch (e) {
+    console.error(e);
+    return { errors: { _form: ['An unexpected error occurred.'] } };
+  }
+};
+
+export const deleteLabourPayment = async (labourId: string, paymentId: string) => {
+  try {
+    await deleteLabourPaymentData(labourId, paymentId);
+    revalidatePath('/labour');
+    return { success: true };
+  } catch (e) {
+    console.error(e);
+    return { errors: { _form: ['An unexpected error occurred.'] } };
+  }
+};
+
+export const deleteLabour = async (labourId: string) => {
+  try {
+    await deleteLabourData(labourId);
+    revalidatePath('/labour');
+    return { success: true };
+  } catch (e) {
+    console.error(e);
+    return { errors: { _form: ['An unexpected error occurred.'] } };
+  }
 };

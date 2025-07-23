@@ -28,3 +28,13 @@ export const paymentSchema = z.object({
     notes: z.string().optional(),
     date: z.date(),
 });
+
+export const labourSchema = z.object({
+  name: z.string().min(2, { message: 'Name must be at least 2 characters.' }),
+  phone: z.string().min(10, { message: 'Phone number must be at least 10 digits.' }),
+});
+
+export const labourPaymentSchema = z.object({
+  date: z.string(),
+  amount: z.number().min(1, { message: 'Amount must be at least 1.' }),
+});

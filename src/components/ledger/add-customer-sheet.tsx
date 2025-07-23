@@ -68,6 +68,7 @@ export function AddCustomerSheet({ children }: { children: React.ReactNode }) {
                 });
                 form.reset();
                 setOpen(false);
+                window.location.reload(); // Force refresh to update customer list
             }
         });
     }

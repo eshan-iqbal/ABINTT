@@ -28,3 +28,16 @@ export type CustomerWithSummary = Customer & {
   totalPaid: number;
   balance: number;
 };
+
+export interface LabourPayment {
+  id: string;
+  date: string;
+  amount: number;
+}
+
+export interface Labour {
+  id: string;
+  name: string;
+  phone: string;
+  payments: LabourPayment[];
+}
