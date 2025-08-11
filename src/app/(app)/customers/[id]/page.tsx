@@ -15,9 +15,10 @@ import { EditCustomerSheet } from "@/components/ledger/edit-customer-sheet";
 export default async function CustomerDetailPage({
   params,
 }: {
-  params: { id: string };
+  params: Promise<{ id: string }>;
 }) {
-  const customer = await getCustomerById(params.id);
+  const { id } = await params;
+  const customer = await getCustomerById(id);
 
   if (!customer) {
     notFound();
@@ -69,17 +70,14 @@ export default async function CustomerDetailPage({
             <CardTitle className="font-headline">Customer Details</CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
-            <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4 text-sm">
-                <div className="flex items-center gap-2">
-                    <Mail className="h-4 w-4 text-muted-foreground"/> <span>{customer.email}</span>
-                </div>
-                <div className="flex items-center gap-2">
-                    <Phone className="h-4 w-4 text-muted-foreground"/> <span>{customer.phone}</span>
-                </div>
+                         <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4 text-sm">
+                 <div className="flex items-center gap-2">
+                     <Phone className="h-4 w-4 text-muted-foreground"/> <span>{customer.phone}</span>
+                 </div>
                  <div className="flex items-center gap-2 col-span-full sm:col-span-1">
-                    <MapPin className="h-4 w-4 text-muted-foreground"/> <span>{customer.address}</span>
-                </div>
-            </div>
+                     <MapPin className="h-4 w-4 text-muted-foreground"/> <span>{customer.address}</span>
+                 </div>
+             </div>
             <Separator/>
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-center pt-2">
                 <div>

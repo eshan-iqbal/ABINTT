@@ -43,9 +43,11 @@ export function EditCustomerSheet({ customer, children }: { customer: CustomerWi
         resolver: zodResolver(customerSchema),
         defaultValues: {
             name: customer.name,
-            email: customer.email,
             phone: phoneWithoutPrefix,
             address: customer.address,
+            billNumber: (customer as any).billNumber || "",
+            amountPaid: (customer as any).amountPaid || 0,
+            amountDue: (customer as any).amountDue || 0,
         },
     });
 
@@ -54,9 +56,11 @@ export function EditCustomerSheet({ customer, children }: { customer: CustomerWi
             const phoneToSet = customer.phone.startsWith('+91') ? customer.phone.slice(3) : customer.phone;
             form.reset({
                 name: customer.name,
-                email: customer.email,
                 phone: phoneToSet,
                 address: customer.address,
+                billNumber: (customer as any).billNumber || "",
+                amountPaid: (customer as any).amountPaid || 0,
+                amountDue: (customer as any).amountDue || 0,
             });
         }
     }, [open, customer, form]);
@@ -118,19 +122,6 @@ export function EditCustomerSheet({ customer, children }: { customer: CustomerWi
                         />
                         <FormField
                             control={form.control}
-                            name="email"
-                            render={({ field }) => (
-                                <FormItem>
-                                    <FormLabel>Email Address</FormLabel>
-                                    <FormControl>
-                                        <Input placeholder="john.doe@example.com" {...field} />
-                                    </FormControl>
-                                    <FormMessage />
-                                </FormItem>
-                            )}
-                        />
-                         <FormField
-                            control={form.control}
                             name="phone"
                             render={({ field }) => (
                                 <FormItem>
@@ -165,6 +156,60 @@ export function EditCustomerSheet({ customer, children }: { customer: CustomerWi
                                 </FormItem>
                             )}
                         />
+
+                        <FormField
+                            control={form.control}
+                            name="billNumber"
+                            render={({ field }) => (
+                                <FormItem>
+                                    <FormLabel>Bill Number</FormLabel>
+                                    <FormControl>
+                                        <Input placeholder="BILL001" {...field} />
+                                    </FormControl>
+                                    <FormMessage />
+                                </FormItem>
+                            )}
+                        />
+
+                        <div className="grid grid-cols-2 gap-4">
+                            <FormField
+                                control={form.control}
+                                name="amountPaid"
+                                render={({ field }) => (
+                                    <FormItem>
+                                        <FormLabel>Amount Paid</FormLabel>
+                                        <FormControl>
+                                            <Input 
+                                                type="number" 
+                                                placeholder="0" 
+                                                {...field}
+                                                onChange={(e) => field.onChange(parseFloat(e.target.value) || 0)}
+                                            />
+                                        </FormControl>
+                                        <FormMessage />
+                                    </FormItem>
+                                )}
+                            />
+
+                            <FormField
+                                control={form.control}
+                                name="amountDue"
+                                render={({ field }) => (
+                                    <FormItem>
+                                        <FormLabel>Amount Due</FormLabel>
+                                        <FormControl>
+                                            <Input 
+                                                type="number" 
+                                                placeholder="0" 
+                                                {...field}
+                                                onChange={(e) => field.onChange(parseFloat(e.target.value) || 0)}
+                                            />
+                                        </FormControl>
+                                        <FormMessage />
+                                    </FormItem>
+                                )}
+                            />
+                        </div>
 
                         <SheetFooter className="mt-8 pt-8 sticky bottom-0 bg-background py-4">
                             <SheetClose asChild>

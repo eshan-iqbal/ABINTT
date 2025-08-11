@@ -43,12 +43,9 @@ export function AddCustomerSheet({ children }: { children: React.ReactNode }) {
             name: "",
             phone: "",
             address: "",
-            initialTransaction: {
-                billNumber: "",
-                amount: 0,
-                mode: "OTHER",
-                notes: "",
-            }
+            billNumber: "",
+            amountPaid: 0,
+            amountDue: 0,
         },
     });
 
@@ -136,56 +133,65 @@ export function AddCustomerSheet({ children }: { children: React.ReactNode }) {
                             )}
                         />
 
-                        <Separator />
-                        
-                        <div>
-                            <h4 className="text-sm font-medium">Initial Bill (Optional)</h4>
-                            <p className="text-sm text-muted-foreground">
-                                Add an initial bill or opening balance for this customer. This will be a debit entry.
-                            </p>
-                        </div>
-                        
                         <FormField
                             control={form.control}
-                            name="initialTransaction.billNumber"
+                            name="billNumber"
                             render={({ field }) => (
                                 <FormItem>
                                     <FormLabel>Bill Number</FormLabel>
                                     <FormControl>
-                                        <Input placeholder="INV-001" {...field} />
+                                        <Input placeholder="BILL001" {...field} />
                                     </FormControl>
                                     <FormMessage />
                                 </FormItem>
                             )}
                         />
-                        
-                        <FormField
-                            control={form.control}
-                            name="initialTransaction.amount"
-                            render={({ field }) => (
-                                <FormItem>
-                                    <FormLabel>Amount</FormLabel>
-                                    <FormControl>
-                                        <Input type="number" placeholder="0.00" {...field} onChange={e => field.onChange(parseFloat(e.target.value) || 0)} />
-                                    </FormControl>
-                                    <FormMessage />
-                                </FormItem>
-                            )}
-                        />
-                        
-                        <FormField
-                            control={form.control}
-                            name="initialTransaction.notes"
-                            render={({ field }) => (
-                                <FormItem>
-                                    <FormLabel>Notes</FormLabel>
-                                    <FormControl>
-                                        <Textarea placeholder="Initial bill, opening balance, etc." {...field} />
-                                    </FormControl>
-                                    <FormMessage />
-                                </FormItem>
-                            )}
-                        />
+
+                        <div className="grid grid-cols-2 gap-4">
+                            <FormField
+                                control={form.control}
+                                name="amountPaid"
+                                render={({ field }) => (
+                                    <FormItem>
+                                        <FormLabel>Amount Paid</FormLabel>
+                                        <FormControl>
+                                            <Input 
+                                                type="number" 
+                                                placeholder="0" 
+                                                {...field}
+                                                onChange={(e) => field.onChange(parseFloat(e.target.value) || 0)}
+                                            />
+                                        </FormControl>
+                                        <FormMessage />
+                                    </FormItem>
+                                )}
+                            />
+
+                            <FormField
+                                control={form.control}
+                                name="amountDue"
+                                render={({ field }) => (
+                                    <FormItem>
+                                        <FormLabel>Amount Due</FormLabel>
+                                        <FormControl>
+                                            <Input 
+                                                type="number" 
+                                                placeholder="0" 
+                                                {...field}
+                                                onChange={(e) => field.onChange(parseFloat(e.target.value) || 0)}
+                                            />
+                                        </FormControl>
+                                        <FormMessage />
+                                    </FormItem>
+                                )}
+                            />
+                        </div>
+
+                        <div className="bg-blue-50 p-3 rounded border border-blue-200">
+                            <div className="text-sm text-blue-800">
+                                <strong>Note:</strong> The system will automatically create transaction records from your Amount Paid and Amount Due values. Amount Due creates a bill (DEBIT), Amount Paid creates a payment (CREDIT).
+                            </div>
+                        </div>
 
 
                         <SheetFooter className="mt-8 pt-8 sticky bottom-0 bg-background py-4 flex justify-center gap-4">

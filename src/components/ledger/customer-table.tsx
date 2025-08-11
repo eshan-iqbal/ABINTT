@@ -34,7 +34,8 @@ import { DeleteCustomerDialog } from "./delete-customer-dialog";
 import { PageHeader } from "../page-header";
 import { AddCustomerSheet } from "./add-customer-sheet";
 import { Input } from "../ui/input";
-import { BulkWhatsAppButton } from "./bulk-whatsapp-button";
+
+import { ImportExportDialog } from "./import-export-dialog";
 import { useToast } from '@/hooks/use-toast';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "../ui/dialog";
 
@@ -91,6 +92,11 @@ export function CustomerTable({
     return [...filteredCustomers].sort((a, b) => {
       const aValue = a[sortKey];
       const bValue = b[sortKey];
+
+      // Handle undefined values
+      if (aValue === undefined && bValue === undefined) return 0;
+      if (aValue === undefined) return sortOrder === "asc" ? 1 : -1;
+      if (bValue === undefined) return sortOrder === "asc" ? -1 : 1;
 
       if (aValue < bValue) {
         return sortOrder === "asc" ? -1 : 1;
@@ -222,7 +228,11 @@ export function CustomerTable({
                     />
                 </div>
                 <div className="flex gap-2">
-                    <BulkWhatsAppButton customers={customers} />
+                    <ImportExportDialog>
+                        <Button variant="outline">
+                            <FileText className="mr-2 h-4 w-4" /> Import/Export
+                        </Button>
+                    </ImportExportDialog>
                     <AddCustomerSheet>
                     <Button>
                         <PlusCircle className="mr-2 h-4 w-4" /> Add Customer
@@ -365,6 +375,11 @@ export function CustomerTable({
                     <Button disabled variant="outline">
                         <MessageCircle className="mr-2 h-4 w-4" /> Send Bulk WhatsApp
                     </Button>
+                    <ImportExportDialog>
+                        <Button variant="outline">
+                            <FileText className="mr-2 h-4 w-4" /> Import/Export
+                        </Button>
+                    </ImportExportDialog>
                     <AddCustomerSheet>
                         <Button>
                             <PlusCircle className="mr-2 h-4 w-4" /> Add Customer

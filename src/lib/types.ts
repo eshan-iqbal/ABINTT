@@ -14,6 +14,9 @@ export type Customer = {
   name: string;
   phone: string;
   address: string;
+  billNumber?: string;
+  amountPaid: number;
+  amountDue: number;
   transactions: Transaction[];
 };
 
@@ -27,6 +30,16 @@ export type CustomerWithSummary = Customer & {
   totalDue: number;
   totalPaid: number;
   balance: number;
+};
+
+// New type for import/export data
+export type CustomerImportData = {
+  name: string;
+  phone: string;
+  address: string;
+  billNumber?: string;
+  amountPaid: number;
+  amountDue: number;
 };
 
 export interface LabourPayment {

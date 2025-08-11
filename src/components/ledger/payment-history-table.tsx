@@ -48,6 +48,11 @@ export function PaymentHistoryTable({
       const aValue = a[sortKey];
       const bValue = b[sortKey];
 
+      // Handle undefined values
+      if (aValue === undefined && bValue === undefined) return 0;
+      if (aValue === undefined) return sortOrder === "asc" ? 1 : -1;
+      if (bValue === undefined) return sortOrder === "asc" ? -1 : 1;
+
       if (aValue < bValue) {
         return sortOrder === "asc" ? -1 : 1;
       }

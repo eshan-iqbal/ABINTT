@@ -4,7 +4,7 @@
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
 import { summarizeTransactions } from "@/ai/flows/summarize-transactions";
-import { getCustomers as getCustomersData, getCustomerById as getCustomerData, formatTransactionsForAI, addCustomer as addCustomerData, addPayment as addPaymentData, deleteCustomer as deleteCustomerData, updateCustomer as updateCustomerData, updateTransaction as updateTransactionData, deleteTransaction as deleteTransactionData, getLabours as getLaboursData, addLabour as addLabourData, addLabourPayment as addLabourPaymentData, deleteLabourPayment as deleteLabourPaymentData, deleteLabour as deleteLabourData } from "@/lib/data";
+import { getCustomers as getCustomersData, getCustomerById as getCustomerData, formatTransactionsForAI, addCustomer as addCustomerData, addPayment as addPaymentData, deleteCustomer as deleteCustomerData, updateCustomer as updateCustomerData, updateTransaction as updateTransactionData, deleteTransaction as deleteTransactionData, getLabours as getLaboursData, addLabour as addLabourData, addLabourPayment as addLabourPaymentData, deleteLabourPayment as deleteLabourPaymentData, deleteLabour as deleteLabourData, exportCustomersToCSV, exportCustomersToJSON, importCustomersFromCSV, importCustomersFromJSON } from "@/lib/data";
 import type { SummarizeTransactionsInput } from '@/ai/flows/summarize-transactions';
 import { addCustomerSchema, paymentSchema, customerSchema, labourSchema, labourPaymentSchema } from "@/lib/schemas";
 import type { Transaction } from "@/lib/types";
@@ -218,5 +218,55 @@ export const deleteLabour = async (labourId: string) => {
   } catch (e) {
     console.error(e);
     return { errors: { _form: ['An unexpected error occurred.'] } };
+  }
+};
+
+// Export customers to CSV
+export const exportCustomersCSV = async () => {
+  try {
+    const csvData = await exportCustomersToCSV();
+    return { success: true, data: csvData };
+  } catch (e) {
+    console.error(e);
+    return { errors: { _form: ["Failed to export customers to CSV."] } };
+  }
+};
+
+// Export customers to JSON
+export const exportCustomersJSON = async () => {
+  try {
+    const jsonData = await exportCustomersToJSON();
+    return { success: true, data: jsonData };
+  } catch (e) {
+    console.error(e);
+    return { errors: { _form: ["Failed to export customers to JSON."] } };
+  }
+};
+
+// Import customers from CSV
+export const importCustomersCSV = async (csvData: string) => {
+  try {
+    const result = await importCustomersFromCSV(csvData);
+    if (result.success > 0) {
+      revalidatePath('/customers');
+    }
+    return { success: true, result };
+  } catch (e) {
+    console.error(e);
+    return { errors: { _form: ["Failed to import customers from CSV."] } };
+  }
+};
+
+// Import customers from JSON
+export const importCustomersJSON = async (jsonData: string) => {
+  try {
+    const result = await importCustomersFromJSON(jsonData);
+    if (result.success > 0) {
+      revalidatePath('/customers');
+    }
+    return { success: true, result };
+  } catch (e) {
+    console.error(e);
+    return { errors: { _form: ["Failed to import customers from JSON."] } };
   }
 };

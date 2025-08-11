@@ -1,1 +1,0 @@
-MONGODB_URI = mongodb+srv://wginventory:eshan123@cluster0.fi1e69v.mongodb.net/

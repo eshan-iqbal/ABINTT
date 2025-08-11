@@ -75,7 +75,7 @@ export const getCustomers = async (): Promise<CustomerSummary[] | null> => {
             console.log("Database not connected, returning null for customer list.");
             return null; // Return null to indicate connection failure
         }
-        const customersCollection = db.collection<Customer>('customers');
+        const customersCollection = db.collection('customers');
         const customers = await customersCollection.find({}).sort({ name: 1 }).toArray();
         
         return customers.map((customer: any) => {
@@ -86,9 +86,11 @@ export const getCustomers = async (): Promise<CustomerSummary[] | null> => {
             return {
                 ...mappedCustomer,
                 name: customer.name,
-                email: customer.email,
                 phone: customer.phone,
                 address: customer.address,
+                billNumber: customer.billNumber || "",
+                amountPaid: customer.amountPaid || 0,
+                amountDue: customer.amountDue || 0,
                 totalDue,
                 totalPaid,
                 balance,
@@ -138,16 +140,32 @@ export const addCustomer = async (data: z.infer<typeof addCustomerSchema>) => {
     if(!db) throw new Error("Database not connected.");
     const customersCollection = db.collection('customers');
     
+    // Create initial transactions based on imported amounts
     const transactions = [];
-    if (data.initialTransaction && data.initialTransaction.amount > 0) {
+    
+    // If there's an amount due, create a DEBIT transaction (bill)
+    if (data.amountDue && data.amountDue > 0) {
         transactions.push({
             id: new ObjectId().toHexString(),
             date: new Date().toISOString(),
-            amount: data.initialTransaction.amount,
+            amount: data.amountDue,
             type: 'DEBIT',
-            mode: data.initialTransaction.mode,
-            billNumber: data.initialTransaction.billNumber || "",
-            notes: data.initialTransaction.notes || "Initial bill",
+            mode: 'OTHER',
+            billNumber: data.billNumber || "",
+            notes: 'Initial bill from customer creation',
+        });
+    }
+    
+    // If there's an amount paid, create a CREDIT transaction (payment)
+    if (data.amountPaid && data.amountPaid > 0) {
+        transactions.push({
+            id: new ObjectId().toHexString(),
+            date: new Date().toISOString(),
+            amount: data.amountPaid,
+            type: 'CREDIT',
+            mode: 'OTHER',
+            billNumber: data.billNumber || "",
+            notes: 'Initial payment from customer creation',
         });
     }
 
@@ -155,6 +173,9 @@ export const addCustomer = async (data: z.infer<typeof addCustomerSchema>) => {
         name: data.name,
         phone: data.phone,
         address: data.address,
+        billNumber: data.billNumber || "",
+        amountPaid: data.amountPaid || 0,
+        amountDue: data.amountDue || 0,
         transactions: transactions,
         createdAt: new Date(),
     };
@@ -213,6 +234,9 @@ export const updateCustomer = async (customerId: string, data: z.infer<typeof cu
             name: data.name,
             phone: data.phone,
             address: data.address,
+            billNumber: data.billNumber || "",
+            amountPaid: data.amountPaid || 0,
+            amountDue: data.amountDue || 0,
         } }
     );
 };
@@ -311,4 +335,270 @@ export const deleteLabour = async (labourId: string): Promise<void> => {
   if (!db) throw new Error('Database not connected.');
   const laboursCollection = db.collection('labours');
   await laboursCollection.deleteOne({ _id: new ObjectId(labourId) });
+};
+
+// Export customers data to CSV format
+export const exportCustomersToCSV = async (): Promise<string> => {
+  const db = await getDb();
+  if (!db) throw new Error('Database not connected.');
+  
+  const customersCollection = db.collection('customers');
+  const customers = await customersCollection.find({}).toArray();
+  
+  // Convert to CSV format with new fields
+  const headers = ['Name', 'Phone', 'Address', 'Bill Number', 'Amount Paid', 'Amount Due', 'Total Due', 'Total Paid', 'Balance'];
+  const csvRows = [headers.join(',')];
+  
+  customers.forEach((customer: any) => {
+    const { totalDue, totalPaid, balance } = calculateSummary(customer.transactions || []);
+    const row = [
+      `"${customer.name || ''}"`,
+      `"${customer.phone || ''}"`,
+      `"${customer.address || ''}"`,
+      `"${customer.billNumber || ''}"`,
+      (customer.amountPaid || 0).toString(),
+      (customer.amountDue || 0).toString(),
+      totalDue.toString(),
+      totalPaid.toString(),
+      balance.toString()
+    ];
+    csvRows.push(row.join(','));
+  });
+  
+  return csvRows.join('\n');
+};
+
+// Export customers data to JSON format
+export const exportCustomersToJSON = async (): Promise<string> => {
+  const db = await getDb();
+  if (!db) throw new Error('Database not connected.');
+  
+  const customersCollection = db.collection('customers');
+  const customers = await customersCollection.find({}).toArray();
+  
+  // Format customers with summaries and new fields
+  const formattedCustomers = customers.map((customer: any) => {
+    const { totalDue, totalPaid, balance } = calculateSummary(customer.transactions || []);
+    return {
+      id: customer._id.toHexString(),
+      name: customer.name || '',
+      phone: customer.phone || '',
+      address: customer.address || '',
+      billNumber: customer.billNumber || '',
+      amountPaid: customer.amountPaid || 0,
+      amountDue: customer.amountDue || 0,
+      totalDue,
+      totalPaid,
+      balance,
+      transactions: customer.transactions || []
+    };
+  });
+  
+  return JSON.stringify(formattedCustomers, null, 2);
+};
+
+// Import customers from CSV data
+export const importCustomersFromCSV = async (csvData: string): Promise<{ success: number; errors: string[]; duplicates: number }> => {
+  const db = await getDb();
+  if (!db) throw new Error('Database not connected.');
+  
+  const lines = csvData.trim().split('\n');
+  if (lines.length < 2) {
+    throw new Error('CSV must have at least a header row and one data row');
+  }
+  
+  const headers = lines[0].split(',').map(h => h.trim().replace(/"/g, ''));
+  const dataLines = lines.slice(1);
+  
+  const customersCollection = db.collection('customers');
+  const results = { success: 0, errors: [] as string[], duplicates: 0 };
+  
+  for (let i = 0; i < dataLines.length; i++) {
+    try {
+      const line = dataLines[i];
+      const values = line.split(',').map(v => v.trim().replace(/"/g, ''));
+      
+      if (values.length < headers.length) {
+        results.errors.push(`Row ${i + 2}: Insufficient data columns`);
+        continue;
+      }
+      
+      const customerData: any = {};
+      headers.forEach((header, index) => {
+        if (values[index]) {
+          const headerLower = header.toLowerCase().replace(/\s+/g, '');
+          customerData[headerLower] = values[index];
+        }
+      });
+      
+      // Validate required fields
+      if (!customerData.name) {
+        results.errors.push(`Row ${i + 2}: Name is required`);
+        continue;
+      }
+      
+      // Format phone number
+      if (customerData.phone && !customerData.phone.startsWith('+91')) {
+        customerData.phone = `+91${customerData.phone}`;
+      }
+      
+      // Parse numeric fields
+      const amountPaid = parseFloat(customerData.amountpaid || customerData.amountpaid || '0') || 0;
+      const amountDue = parseFloat(customerData.amountdue || customerData.amountdue || '0') || 0;
+      
+      // Check if customer already exists
+      const existingCustomer = await customersCollection.findOne({ 
+        phone: customerData.phone 
+      });
+      
+      if (existingCustomer) {
+        // Skip duplicate silently - don't add to errors, just count it
+        results.duplicates++;
+        continue;
+      }
+      
+      // Create initial transactions based on imported amounts
+      const transactions = [];
+      
+      // If there's an amount due, create a DEBIT transaction (bill)
+      if (amountDue > 0) {
+        transactions.push({
+          id: new ObjectId().toHexString(),
+          date: new Date().toISOString(),
+          amount: amountDue,
+          type: 'DEBIT',
+          mode: 'OTHER',
+          billNumber: customerData.billnumber || customerData.billNumber || '',
+          notes: 'Initial bill from import',
+        });
+      }
+      
+      // If there's an amount paid, create a CREDIT transaction (payment)
+      if (amountPaid > 0) {
+        transactions.push({
+          id: new ObjectId().toHexString(),
+          date: new Date().toISOString(),
+          amount: amountPaid,
+          type: 'CREDIT',
+          mode: 'OTHER',
+          billNumber: customerData.billnumber || customerData.billNumber || '',
+          notes: 'Initial payment from import',
+        });
+      }
+      
+      // Insert customer with new fields and transactions
+      await customersCollection.insertOne({
+        name: customerData.name,
+        phone: customerData.phone || '',
+        address: customerData.address || '',
+        billNumber: customerData.billnumber || customerData.billNumber || '',
+        amountPaid: amountPaid,
+        amountDue: amountDue,
+        transactions: transactions,
+        createdAt: new Date()
+      });
+      
+      results.success++;
+    } catch (error) {
+      results.errors.push(`Row ${i + 2}: ${error instanceof Error ? error.message : 'Unknown error'}`);
+    }
+  }
+  
+  return results;
+};
+
+// Import customers from JSON data
+export const importCustomersFromJSON = async (jsonData: string): Promise<{ success: number; errors: string[]; duplicates: number }> => {
+  const db = await getDb();
+  if (!db) throw new Error('Database not connected.');
+  
+  let customers;
+  try {
+    customers = JSON.parse(jsonData);
+  } catch (error) {
+    throw new Error('Invalid JSON format');
+  }
+  
+  if (!Array.isArray(customers)) {
+    throw new Error('JSON data must be an array of customers');
+  }
+  
+  const customersCollection = db.collection('customers');
+  const results = { success: 0, errors: [] as string[], duplicates: 0 };
+  
+  for (let i = 0; i < customers.length; i++) {
+    try {
+      const customerData = customers[i];
+      
+      // Validate required fields
+      if (!customerData.name) {
+        results.errors.push(`Customer ${i + 1}: Name is required`);
+        continue;
+      }
+      
+      // Check if customer already exists
+      const existingCustomer = await customersCollection.findOne({ 
+        phone: customerData.phone 
+      });
+      
+      if (existingCustomer) {
+        // Skip duplicate silently - don't add to errors, just count it
+        results.duplicates++;
+        continue;
+      }
+      
+      // Parse numeric fields
+      const amountPaid = parseFloat(customerData.amountPaid) || 0;
+      const amountDue = parseFloat(customerData.amountDue) || 0;
+      
+      // Create initial transactions based on imported amounts (if no transactions provided)
+      let transactions = customerData.transactions || [];
+      
+      if (transactions.length === 0) {
+        // If there's an amount due, create a DEBIT transaction (bill)
+        if (amountDue > 0) {
+          transactions.push({
+            id: new ObjectId().toHexString(),
+            date: new Date().toISOString(),
+            amount: amountDue,
+            type: 'DEBIT',
+            mode: 'OTHER',
+            billNumber: customerData.billNumber || '',
+            notes: 'Initial bill from import',
+          });
+        }
+        
+        // If there's an amount paid, create a CREDIT transaction (payment)
+        if (amountPaid > 0) {
+          transactions.push({
+            id: new ObjectId().toHexString(),
+            date: new Date().toISOString(),
+            amount: amountPaid,
+            type: 'CREDIT',
+            mode: 'OTHER',
+            billNumber: customerData.billNumber || '',
+            notes: 'Initial payment from import',
+          });
+        }
+      }
+      
+      // Insert customer with new fields and transactions
+      await customersCollection.insertOne({
+        name: customerData.name,
+        phone: customerData.phone || '',
+        address: customerData.address || '',
+        billNumber: customerData.billNumber || '',
+        amountPaid: amountPaid,
+        amountDue: amountDue,
+        transactions: transactions,
+        createdAt: new Date()
+      });
+      
+      results.success++;
+    } catch (error) {
+      results.errors.push(`Customer ${i + 1}: ${error instanceof Error ? error.message : 'Unknown error'}`);
+    }
+  }
+  
+  return results;
 };

@@ -10,9 +10,10 @@ import type { Transaction } from "@/lib/types";
 export default async function StatementPage({
   params,
 }: {
-  params: { id: string };
+  params: Promise<{ id: string }>;
 }) {
-  const customer = await getCustomerById(params.id);
+  const { id } = await params;
+  const customer = await getCustomerById(id);
 
   if (!customer) {
     notFound();
@@ -49,12 +50,11 @@ export default async function StatementPage({
                 </div>
                 <p className="text-gray-500">Payment Statement</p>
             </div>
-            <div className="text-right">
-                <h2 className="text-2xl font-semibold">{customer.name}</h2>
-                <p className="text-gray-600">{customer.address}</p>
-                <p className="text-gray-600">{customer.email}</p>
-                <p className="text-gray-600">{customer.phone}</p>
-            </div>
+                         <div className="text-right">
+                 <h2 className="text-2xl font-semibold">{customer.name}</h2>
+                 <p className="text-gray-600">{customer.address}</p>
+                 <p className="text-gray-600">{customer.phone}</p>
+             </div>
         </header>
 
         <Separator className="my-8 bg-gray-300" />
