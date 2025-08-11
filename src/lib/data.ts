@@ -5,7 +5,9 @@ import { addCustomerSchema, customerSchema, paymentSchema } from './schemas';
 
 
 const MONGODB_URI = process.env.MONGODB_URI || "mongodb://127.0.0.1:27017";
-const DB_NAME = 'tjid'; 
+const DB_NAME = 'tjid';
+
+ 
 
 if (!MONGODB_URI) {
   throw new Error('Please define the MONGODB_URI environment variable inside .env');
@@ -21,7 +23,11 @@ async function connectToDatabase() {
   
   try {
     const client = new MongoClient(MONGODB_URI, {
-        serverSelectionTimeoutMS: 5000 // Shorten timeout for quicker failure
+        serverSelectionTimeoutMS: 10000, // Increase timeout to 10 seconds
+        connectTimeoutMS: 10000,
+        socketTimeoutMS: 45000,
+        maxPoolSize: 10,
+        minPoolSize: 1
     });
     await client.connect();
     const db = client.db(DB_NAME);
@@ -75,9 +81,19 @@ export const getCustomers = async (): Promise<CustomerSummary[] | null> => {
             console.log("Database not connected, returning null for customer list.");
             return null; // Return null to indicate connection failure
         }
+        
         const customersCollection = db.collection('customers');
+        
+        // Get total count and all customers
+        const totalCount = await customersCollection.countDocuments({});
         const customers = await customersCollection.find({}).sort({ name: 1 }).toArray();
         
+        // Ensure we're returning all customers
+        if (customers.length === 0) {
+            return [];
+        }
+        
+        // Return all customers without any artificial limits
         return customers.map((customer: any) => {
             const { totalDue, totalPaid, balance } = calculateSummary(customer.transactions || []);
             const { transactions, ...customerWithoutTransactions } = customer;

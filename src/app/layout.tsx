@@ -3,6 +3,7 @@ import './globals.css';
 import { Toaster } from "@/components/ui/toaster"
 import { cn } from '@/lib/utils';
 import { AppShell } from '@/components/ledger/app-shell';
+import { AuthWrapper } from '@/components/auth/auth-wrapper';
 
 export const metadata: Metadata = {
   title: 'AB INTERIOR',
@@ -22,7 +23,9 @@ export default function RootLayout({
         <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
       </head>
       <body className={cn("font-body antialiased", "min-h-screen bg-background font-sans")}>
+        <AuthWrapper>
           {children}
+        </AuthWrapper>
         <Toaster />
       </body>
     </html>

@@ -6,7 +6,9 @@ import {
   Users,
   BarChart,
   Briefcase,
+  LogOut,
 } from "lucide-react";
+import { LogoutButton } from "@/components/auth/logout-button";
 import {
   SidebarProvider,
   Sidebar,
@@ -17,7 +19,8 @@ import {
   SidebarMenuButton,
 } from "@/components/ui/sidebar";
 import { Logo } from "@/components/icons";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
+import { logout } from "@/lib/auth";
 
 export function AppShell({
   children,
@@ -25,6 +28,7 @@ export function AppShell({
   children: React.ReactNode;
 }) {
   const pathname = usePathname();
+  const router = useRouter();
 
   const menuItems = [
     { href: "/customers", label: "Customers", icon: Users },
@@ -36,9 +40,12 @@ export function AppShell({
     <SidebarProvider>
       <Sidebar>
         <SidebarHeader>
-          <div className="flex items-center gap-2">
-            <Logo className="size-8 text-primary" />
-            <span className="text-lg font-semibold">AB INTERIOR</span>
+          <div className="flex items-center justify-between w-full">
+            <div className="flex items-center gap-2">
+              <Logo className="size-8 text-primary" />
+              <span className="text-lg font-semibold">AB INTERIOR</span>
+            </div>
+            <LogoutButton />
           </div>
         </SidebarHeader>
         <SidebarContent>
@@ -70,6 +77,16 @@ export function AppShell({
             <span className="text-xs font-medium">{item.label}</span>
           </Link>
         ))}
+        <button
+          onClick={() => {
+            logout();
+            router.push("/login");
+          }}
+          className="flex flex-col items-center justify-center flex-1 text-gray-500 hover:text-red-500"
+        >
+          <LogOut className="w-6 h-6 mb-1" />
+          <span className="text-xs font-medium">Logout</span>
+        </button>
       </nav>
     </SidebarProvider>
   );

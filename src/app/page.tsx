@@ -1,24 +1,92 @@
+"use client";
+
+import { useEffect } from "react";
+import { useRouter } from "next/navigation";
+import { isAuthenticated } from "@/lib/auth";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Users, BarChart, Briefcase } from "lucide-react";
 import Link from "next/link";
 
-export default function Home() {
+export default function HomePage() {
+  const router = useRouter();
+
+  useEffect(() => {
+    // If user is authenticated, redirect to customers page
+    if (isAuthenticated()) {
+      router.push("/customers");
+    }
+  }, [router]);
+
+  const features = [
+    {
+      icon: Users,
+      title: "Customer Management",
+      description: "Manage customer information, track payments, and maintain ledgers",
+      href: "/customers"
+    },
+    {
+      icon: BarChart,
+      title: "Analytics Dashboard",
+      description: "View business insights, payment trends, and customer analytics",
+      href: "/analytics"
+    },
+    {
+      icon: Briefcase,
+      title: "Labour Management",
+      description: "Track labour payments and manage worker information",
+      href: "/labour"
+    }
+  ];
+
   return (
-    <main className="flex min-h-screen flex-col items-center justify-center p-24">
-      <div className="text-center">
-        <h1 className="text-4xl font-bold tracking-tight text-gray-900 dark:text-gray-50 sm:text-6xl">
-          Welcome to AB INTERIOR
-        </h1>
-        <p className="mt-6 text-lg leading-8 text-gray-600 dark:text-gray-300">
-          Your modern customer payment ledger application.
-        </p>
-        <div className="mt-10 flex items-center justify-center gap-x-6">
-          <Link
-            href="/customers"
-            className="rounded-md bg-primary px-3.5 py-2.5 text-sm font-semibold text-primary-foreground shadow-sm hover:bg-primary/90 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600"
-          >
-            Go to Dashboard
-          </Link>
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100">
+      <div className="container mx-auto px-4 py-16">
+        <div className="text-center mb-16">
+          <h1 className="text-4xl font-bold text-gray-900 mb-4">
+            Welcome to AB INTERIOR
+          </h1>
+          <p className="text-xl text-gray-600 max-w-2xl mx-auto">
+            A modern customer payment ledger application for managing your interior design business
+          </p>
+        </div>
+
+        <div className="grid md:grid-cols-3 gap-8 mb-16">
+          {features.map((feature) => (
+            <Card key={feature.title} className="text-center hover:shadow-lg transition-shadow">
+              <CardHeader>
+                <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-blue-100">
+                  <feature.icon className="h-8 w-8 text-blue-600" />
+                </div>
+                <CardTitle className="text-xl">{feature.title}</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <CardDescription className="text-base">
+                  {feature.description}
+                </CardDescription>
+              </CardContent>
+            </Card>
+          ))}
+        </div>
+
+        <div className="text-center">
+          <Card className="max-w-md mx-auto">
+            <CardHeader>
+              <CardTitle>Get Started</CardTitle>
+              <CardDescription>
+                Login to access your business dashboard
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <Link href="/login">
+                <Button className="w-full" size="lg">
+                  Login to Dashboard
+                </Button>
+              </Link>
+            </CardContent>
+          </Card>
         </div>
       </div>
-    </main>
+    </div>
   );
 }

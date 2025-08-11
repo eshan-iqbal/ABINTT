@@ -59,6 +59,7 @@ export const addCustomer = async (data: z.infer<typeof addCustomerSchema>) => {
     try {
         await addCustomerData(processedData);
         revalidatePath('/customers');
+        revalidatePath('/analytics');
         return { success: true };
     } catch (e) {
         console.error(e);
@@ -81,6 +82,7 @@ export const addPayment = async (data: z.infer<typeof paymentSchema>) => {
         await addPaymentData(validatedFields.data);
         revalidatePath(`/customers/${data.customerId}`);
         revalidatePath('/customers');
+        revalidatePath('/analytics');
         return { success: true };
     } catch (e) {
         console.error(e);
@@ -95,6 +97,7 @@ export const deleteCustomer = async (customerId: string) => {
     try {
         await deleteCustomerData(customerId);
         revalidatePath('/customers');
+        revalidatePath('/analytics');
         return { success: true };
     } catch (e) {
         console.error(e);
@@ -119,6 +122,7 @@ export const updateCustomer = async (customerId: string, data: z.infer<typeof cu
         await updateCustomerData(customerId, validatedFields.data);
         revalidatePath(`/customers/${customerId}`);
         revalidatePath('/customers');
+        revalidatePath('/analytics');
         return { success: true };
     } catch (e) {
         console.error(e);
@@ -141,6 +145,7 @@ export const updateTransaction = async (customerId: string, transactionId: strin
         await updateTransactionData(customerId, transactionId, validatedFields.data);
         revalidatePath(`/customers/${customerId}`);
         revalidatePath('/customers');
+        revalidatePath('/analytics');
         return { success: true };
     } catch (e) {
         console.error(e);
@@ -155,6 +160,7 @@ export const deleteTransaction = async (customerId: string, transactionId: strin
         await deleteTransactionData(customerId, transactionId);
         revalidatePath(`/customers/${customerId}`);
         revalidatePath('/customers');
+        revalidatePath('/analytics');
         return { success: true };
     } catch (e) {
         console.error(e);
@@ -249,6 +255,7 @@ export const importCustomersCSV = async (csvData: string) => {
     const result = await importCustomersFromCSV(csvData);
     if (result.success > 0) {
       revalidatePath('/customers');
+      revalidatePath('/analytics');
     }
     return { success: true, result };
   } catch (e) {
@@ -263,6 +270,7 @@ export const importCustomersJSON = async (jsonData: string) => {
     const result = await importCustomersFromJSON(jsonData);
     if (result.success > 0) {
       revalidatePath('/customers');
+      revalidatePath('/analytics');
     }
     return { success: true, result };
   } catch (e) {
